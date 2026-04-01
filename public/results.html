@@ -20,6 +20,9 @@
 
     .toolbar {
       margin-bottom: 18px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
     }
 
     .toolbar button {
@@ -29,6 +32,15 @@
       cursor: pointer;
       background: #111;
       color: white;
+    }
+
+    .summary {
+      margin-bottom: 18px;
+      padding: 14px 16px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      line-height: 1.8;
     }
 
     .card {
@@ -132,6 +144,13 @@
       border: 1px solid #ccc;
       background: white;
     }
+
+    .empty {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
   </style>
 </head>
 <body>
@@ -139,25 +158,47 @@
 
   <div class="toolbar">
     <button onclick="load()">再読み込み</button>
+    <button onclick="downloadCsv()">CSVダウンロード</button>
   </div>
 
+  <div id="summary" class="summary">読み込み中...</div>
   <div id="list">読み込み中...</div>
 
   <script>
+    window.currentItems = [];
+
     async function load() {
       const root = document.getElementById("list");
+      const summary = document.getElementById("summary");
+
       root.innerHTML = "読み込み中...";
+      summary.innerHTML = "読み込み中...";
 
       try {
         const res = await fetch("/scout-results");
         const data = await res.json();
 
         if (!data.items || data.items.length === 0) {
-          root.innerHTML = "まだ候補者がありません";
+          window.currentItems = [];
+          summary.innerHTML = "候補者数: 0件";
+          root.innerHTML = '<div class="empty">まだ候補者がありません</div>';
           return;
         }
 
         const sorted = [...data.items].sort((a, b) => (b.match_score || 0) - (a.match_score || 0));
+        window.currentItems = sorted;
+
+        const total = sorted.length;
+        const sendCount = sorted.filter(x => x.send_recommendation).length;
+        const sentCount = sorted.filter(x => x.sent_status === "送信済み").length;
+        const replyCount = sorted.filter(x => x.sent_status === "返信あり").length;
+        const passCount = sorted.filter(x => x.sent_status === "見送り").length;
+
+        summary.innerHTML = `
+          候補者数: ${total}件<br>
+          送付推奨: ${sendCount}件<br>
+          送信済み: ${sentCount}件 / 返信あり: ${replyCount}件 / 見送り: ${passCount}件
+        `;
 
         root.innerHTML = sorted.map((item, index) => `
           <div class="card">
@@ -190,20 +231,20 @@
             <div class="section">
               <div class="label">送る理由</div>
               <ul>
-                ${(item.why_send || []).map(x => `<li>${x}</li>`).join("")}
+                ${(item.why_send || []).map(x => `<li>${escapeHtml(x)}</li>`).join("")}
               </ul>
             </div>
 
             <div class="section">
               <div class="label">訴求ポイント</div>
               <ul>
-                ${(item.appeal_points || []).map(x => `<li>${x}</li>`).join("")}
+                ${(item.appeal_points || []).map(x => `<li>${escapeHtml(x)}</li>`).join("")}
               </ul>
             </div>
 
             <div class="section">
               <div class="label">スカウト文</div>
-              <div class="message" id="msg-${item.id}">${item.scout_message || ""}</div>
+              <div class="message" id="msg-${item.id}">${escapeHtml(item.scout_message || "")}</div>
               <div class="actions">
                 <button class="action" onclick="copyMessage('${item.id}')">コピー</button>
               </div>
@@ -211,8 +252,19 @@
           </div>
         `).join("");
       } catch (e) {
-        root.innerHTML = "読み込みエラー: " + e.message;
+        window.currentItems = [];
+        summary.innerHTML = "読み込みに失敗しました";
+        root.innerHTML = '<div class="empty">読み込みエラー: ' + e.message + '</div>';
       }
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
     }
 
     function copyMessage(id) {
@@ -240,6 +292,63 @@
       } else {
         alert("更新失敗: " + (data.error || "unknown error"));
       }
+    }
+
+    function downloadCsv() {
+      const cards = window.currentItems || [];
+
+      if (!cards.length) {
+        alert("ダウンロードする候補者がありません");
+        return;
+      }
+
+      const rows = [
+        [
+          "rank",
+          "candidate_name",
+          "job_id",
+          "match_score",
+          "send_recommendation",
+          "sent_status",
+          "must_fit",
+          "want_fit",
+          "why_send",
+          "appeal_points",
+          "scout_message"
+        ]
+      ];
+
+      cards.forEach((item, index) => {
+        rows.push([
+          index + 1,
+          item.candidate_name || "",
+          item.job_id || "",
+          item.match_score || "",
+          item.send_recommendation ? "送る" : "見送り",
+          item.sent_status || "",
+          item.must_fit || "",
+          item.want_fit || "",
+          (item.why_send || []).join(" / "),
+          (item.appeal_points || []).join(" / "),
+          (item.scout_message || "").replace(/\n/g, " ")
+        ]);
+      });
+
+      const csv = rows
+        .map(row =>
+          row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(",")
+        )
+        .join("\n");
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "scout_results.csv";
+      a.click();
+
+      URL.revokeObjectURL(url);
     }
 
     load();
