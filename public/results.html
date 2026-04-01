@@ -40,7 +40,7 @@
       background: white;
       border-radius: 12px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      line-height: 1.8;
+      line-height: 1.9;
     }
 
     .card {
@@ -189,15 +189,22 @@
         window.currentItems = sorted;
 
         const total = sorted.length;
-        const sendCount = sorted.filter(x => x.send_recommendation).length;
+        const recommendCount = sorted.filter(x => x.send_recommendation).length;
         const sentCount = sorted.filter(x => x.sent_status === "送信済み").length;
         const replyCount = sorted.filter(x => x.sent_status === "返信あり").length;
+        const interviewCount = sorted.filter(x => x.sent_status === "面談設定").length;
         const passCount = sorted.filter(x => x.sent_status === "見送り").length;
+
+        const replyRate = sentCount > 0 ? ((replyCount / sentCount) * 100).toFixed(1) : "0.0";
+        const interviewRate = sentCount > 0 ? ((interviewCount / sentCount) * 100).toFixed(1) : "0.0";
 
         summary.innerHTML = `
           候補者数: ${total}件<br>
-          送付推奨: ${sendCount}件<br>
-          送信済み: ${sentCount}件 / 返信あり: ${replyCount}件 / 見送り: ${passCount}件
+          送付推奨: ${recommendCount}件<br>
+          送信済み: ${sentCount}件<br>
+          返信あり: ${replyCount}件（返信率 ${replyRate}%）<br>
+          面談設定: ${interviewCount}件（面談化率 ${interviewRate}%）<br>
+          見送り: ${passCount}件
         `;
 
         root.innerHTML = sorted.map((item, index) => `
@@ -222,6 +229,7 @@
                 <option value="未送信" ${item.sent_status === "未送信" ? "selected" : ""}>未送信</option>
                 <option value="送信済み" ${item.sent_status === "送信済み" ? "selected" : ""}>送信済み</option>
                 <option value="返信あり" ${item.sent_status === "返信あり" ? "selected" : ""}>返信あり</option>
+                <option value="面談設定" ${item.sent_status === "面談設定" ? "selected" : ""}>面談設定</option>
                 <option value="見送り" ${item.sent_status === "見送り" ? "selected" : ""}>見送り</option>
               </select>
 
