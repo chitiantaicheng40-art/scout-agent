@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Scout Results</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 1100px;
+      margin: 30px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+
+    h1 {
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .name {
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    .score {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .good {
+      color: #0a8a2a;
+    }
+
+    .bad {
+      color: #d22;
+    }
+
+    .section {
+      margin-top: 12px;
+    }
+
+    .label {
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .message {
+      background: #fafafa;
+      border: 1px solid #ddd;
+      padding: 12px;
+      border-radius: 8px;
+      white-space: pre-wrap;
+    }
+
+    button {
+      margin-top: 12px;
+      padding: 10px 14px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: #111;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <h1>Scout Results</h1>
+  <div id="list">読み込み中...</div>
+
+  <script>
+    async function load() {
+      const res = await fetch("/scout-results");
+      const data = await res.json();
+
+      const root = document.getElementById("list");
+
+      if (!data.items || data.items.length === 0) {
+        root.innerHTML = "まだ候補者がありません";
+        return;
+      }
+
+      root.innerHTML = data.items.map(item => `
+        <div class="card">
+          <div class="top">
+            <div class="name">${item.candidate_name || "名前なし"}</div>
+            <div class="score ${item.send_recommendation ? "good" : "bad"}">
+              ${item.match_score}点 / ${item.send_recommendation ? "送る" : "見送り"}
+            </div>
+          </div>
+
+          <div>求人: ${item.job_id}</div>
+          <div>Must: ${item.must_fit} / Want: ${item.want_fit}</div>
+
+          <div class="section">
+            <div class="label">送る理由</div>
+            <ul>
+              ${(item.why_send || []).map(x => `<li>${x}</li>`).join("")}
+            </ul>
+          </div>
+
+          <div class="section">
+            <div class="label">訴求ポイント</div>
+            <ul>
+              ${(item.appeal_points || []).map(x => `<li>${x}</li>`).join("")}
+            </ul>
+          </div>
+
+          <div class="section">
+            <div class="label">スカウト文</div>
+            <div class="message" id="msg-${item.id}">${item.scout_message || ""}</div>
+            <button onclick="copyMessage('${item.id}')">コピー</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function copyMessage(id) {
+      const text = document.getElementById(`msg-${id}`).innerText;
+      navigator.clipboard.writeText(text);
+      alert("コピーしました");
+    }
+
+    load();
+  </script>
+</body>
+</html>
