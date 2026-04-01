@@ -206,7 +206,13 @@
 
         const total = sorted.length;
         const recommendCount = sorted.filter(x => x.send_recommendation).length;
-        const sentCount = sorted.filter(x => x.sent_status === "送信済み").length;
+
+        const sentBaseStatuses = ["送信済み", "返信あり", "面談設定"];
+
+        const sentCount = sorted.filter(x =>
+          sentBaseStatuses.includes(x.sent_status)
+        ).length;
+
         const replyCount = sorted.filter(x => x.sent_status === "返信あり").length;
         const interviewCount = sorted.filter(x => x.sent_status === "面談設定").length;
         const passCount = sorted.filter(x => x.sent_status === "見送り").length;
@@ -235,15 +241,21 @@
 
           jobStats[jobId].total += 1;
 
-          if (item.sent_status === "送信済み") {
+          const status = item.sent_status || "";
+
+          if (
+            status === "送信済み" ||
+            status === "返信あり" ||
+            status === "面談設定"
+          ) {
             jobStats[jobId].sent += 1;
           }
 
-          if (item.sent_status === "返信あり") {
+          if (status === "返信あり") {
             jobStats[jobId].reply += 1;
           }
 
-          if (item.sent_status === "面談設定") {
+          if (status === "面談設定") {
             jobStats[jobId].interview += 1;
           }
         });
@@ -274,7 +286,7 @@
           <div>
             候補者数: ${total}件<br>
             送付推奨: ${recommendCount}件<br>
-            送信済み: ${sentCount}件<br>
+            送信済み母数: ${sentCount}件<br>
             返信あり: ${replyCount}件（返信率 ${replyRate}%）<br>
             面談設定: ${interviewCount}件（面談化率 ${interviewRate}%）<br>
             見送り: ${passCount}件
