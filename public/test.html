@@ -2,6 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Scout Agent Test</title>
   <style>
     body {
@@ -10,25 +11,55 @@
       margin: 40px auto;
       padding: 20px;
       background: #f7f7f7;
+      color: #111;
     }
+
     h1 {
-      margin-bottom: 24px;
+      margin-bottom: 12px;
     }
+
     h2 {
       margin-top: 32px;
+      margin-bottom: 10px;
     }
+
+    .sub {
+      color: #666;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    .tips {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 20px;
+      line-height: 1.7;
+    }
+
     textarea {
       width: 100%;
       height: 260px;
       margin-bottom: 20px;
       font-family: monospace;
       font-size: 14px;
+      line-height: 1.5;
       padding: 12px;
       box-sizing: border-box;
       border-radius: 8px;
       border: 1px solid #ccc;
       background: white;
+      resize: vertical;
     }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
     button {
       padding: 12px 20px;
       font-size: 16px;
@@ -38,6 +69,17 @@
       color: white;
       border-radius: 8px;
     }
+
+    button.secondary {
+      background: #666;
+    }
+
+    .status {
+      margin: 10px 0 18px;
+      color: #444;
+      font-size: 14px;
+    }
+
     pre {
       background: white;
       padding: 16px;
@@ -46,16 +88,22 @@
       border-radius: 8px;
       border: 1px solid #ddd;
       overflow-x: auto;
-    }
-    .sub {
-      color: #666;
-      margin-bottom: 16px;
+      line-height: 1.6;
     }
   </style>
 </head>
 <body>
   <h1>Scout Agent Test</h1>
-  <div class="sub">1人でも複数人でも評価できます。複数人で試すときは candidates をそのまま使ってください。</div>
+  <div class="sub">
+    1人でも複数人でも評価できます。複数人で試すときは、Candidates に配列のまま入れてください。
+  </div>
+
+  <div class="tips">
+    <strong>使い方</strong><br />
+    ・Candidates は <code>[ ... ]</code> で囲むと複数人評価です。<br />
+    ・Job は1つの求人JSONです。<br />
+    ・結果で <code>"mode": "bulk"</code> が出れば複数人比較できています。
+  </div>
 
   <h2>Candidates</h2>
   <textarea id="candidates">[
@@ -79,12 +127,13 @@
     "experience": [
       "SaaS企業で営業企画",
       "Salesforce運用",
-      "KPI設計"
+      "KPI設計",
+      "CRM改善プロジェクト"
     ],
     "strengths": [
-      "CRM運用",
       "データ分析",
-      "営業改善"
+      "CRM運用",
+      "KPI設計"
     ]
   }
 ]</textarea>
@@ -104,13 +153,84 @@
   ]
 }</textarea>
 
-  <button onclick="runTest()">評価する</button>
+  <div class="actions">
+    <button onclick="runTest()">評価する</button>
+    <button class="secondary" onclick="fillSingleSample()">1人サンプルに戻す</button>
+    <button class="secondary" onclick="fillBulkSample()">2人サンプルに戻す</button>
+  </div>
+
+  <div class="status" id="status">待機中</div>
 
   <pre id="result">ここに結果が表示されます</pre>
 
   <script>
+    const singleSample = `[
+  {
+    "id": "candidate_001",
+    "name": "池田太晟",
+    "experience": [
+      "リクルートで法人営業",
+      "営業企画・業務改善に関心",
+      "JFEスチールで生産管理・設備導入"
+    ],
+    "strengths": [
+      "顧客課題整理",
+      "関係者巻き込み",
+      "改善提案"
+    ]
+  }
+]`;
+
+    const bulkSample = `[
+  {
+    "id": "candidate_001",
+    "name": "池田太晟",
+    "experience": [
+      "リクルートで法人営業",
+      "営業企画・業務改善に関心",
+      "JFEスチールで生産管理・設備導入"
+    ],
+    "strengths": [
+      "顧客課題整理",
+      "関係者巻き込み",
+      "改善提案"
+    ]
+  },
+  {
+    "id": "candidate_002",
+    "name": "山田花子",
+    "experience": [
+      "SaaS企業で営業企画",
+      "Salesforce運用",
+      "KPI設計",
+      "CRM改善プロジェクト"
+    ],
+    "strengths": [
+      "データ分析",
+      "CRM運用",
+      "KPI設計"
+    ]
+  }
+]`;
+
+    function fillSingleSample() {
+      document.getElementById("candidates").value = singleSample;
+      document.getElementById("status").textContent = "1人サンプルをセットしました";
+    }
+
+    function fillBulkSample() {
+      document.getElementById("candidates").value = bulkSample;
+      document.getElementById("status").textContent = "2人サンプルをセットしました";
+    }
+
     async function runTest() {
+      const status = document.getElementById("status");
+      const result = document.getElementById("result");
+
       try {
+        status.textContent = "評価中...";
+        result.textContent = "送信中...";
+
         const candidates = JSON.parse(document.getElementById("candidates").value);
         const job = JSON.parse(document.getElementById("job").value);
 
@@ -124,11 +244,16 @@
 
         const data = await response.json();
 
-        document.getElementById("result").textContent =
-          JSON.stringify(data, null, 2);
+        result.textContent = JSON.stringify(data, null, 2);
+
+        if (data.ok) {
+          status.textContent = `完了: ${data.mode || "single"} モードで評価しました`;
+        } else {
+          status.textContent = "APIエラーが返りました";
+        }
       } catch (e) {
-        document.getElementById("result").textContent =
-          "エラー: " + e.message;
+        result.textContent = "エラー: " + e.message;
+        status.textContent = "JSON形式または通信エラーです";
       }
     }
   </script>
