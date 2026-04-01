@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>Scout Agent Test</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+    textarea {
+      width: 100%;
+      height: 220px;
+      margin-bottom: 20px;
+      font-family: monospace;
+    }
+    button {
+      padding: 12px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    pre {
+      background: #f5f5f5;
+      padding: 16px;
+      white-space: pre-wrap;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Scout Agent Test</h1>
+
+  <h2>Candidate</h2>
+  <textarea id="candidate">
+{
+  "id": "candidate_001",
+  "name": "池田太晟",
+  "experience": [
+    "リクルートで法人営業",
+    "営業企画・業務改善に関心",
+    "JFEスチールで生産管理・設備導入"
+  ],
+  "strengths": [
+    "顧客課題整理",
+    "関係者巻き込み",
+    "改善提案"
+  ]
+}
+  </textarea>
+
+  <h2>Job</h2>
+  <textarea id="job">
+{
+  "id": "job_001",
+  "title": "営業企画 / RevOps",
+  "must": [
+    "法人営業経験",
+    "データを使った改善経験"
+  ],
+  "want": [
+    "SaaS",
+    "営業企画",
+    "CRM運用"
+  ]
+}
+  </textarea>
+
+  <button onclick="runTest()">評価する</button>
+
+  <pre id="result">ここに結果が表示されます</pre>
+
+  <script>
+    async function runTest() {
+      const candidate = JSON.parse(document.getElementById("candidate").value);
+      const job = JSON.parse(document.getElementById("job").value);
+
+      const response = await fetch("/evaluate-scout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ candidate, job })
+      });
+
+      const data = await response.json();
+
+      document.getElementById("result").textContent =
+        JSON.stringify(data, null, 2);
+    }
+  </script>
+</body>
+</html>
