@@ -43,6 +43,16 @@
       line-height: 1.9;
     }
 
+    .summary-title {
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .job-block {
+      margin-top: 8px;
+      padding-top: 8px;
+    }
+
     .card {
       background: white;
       border-radius: 12px;
@@ -151,6 +161,12 @@
       border-radius: 12px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
+
+    hr {
+      margin: 16px 0;
+      border: none;
+      border-top: 1px solid #ddd;
+    }
   </style>
 </head>
 <body>
@@ -195,26 +211,91 @@
         const interviewCount = sorted.filter(x => x.sent_status === "面談設定").length;
         const passCount = sorted.filter(x => x.sent_status === "見送り").length;
 
-        const replyRate = sentCount > 0 ? ((replyCount / sentCount) * 100).toFixed(1) : "0.0";
-        const interviewRate = sentCount > 0 ? ((interviewCount / sentCount) * 100).toFixed(1) : "0.0";
+        const replyRate = sentCount > 0
+          ? ((replyCount / sentCount) * 100).toFixed(1)
+          : "0.0";
+
+        const interviewRate = sentCount > 0
+          ? ((interviewCount / sentCount) * 100).toFixed(1)
+          : "0.0";
+
+        const jobStats = {};
+
+        sorted.forEach(item => {
+          const jobId = item.job_id || "unknown";
+
+          if (!jobStats[jobId]) {
+            jobStats[jobId] = {
+              total: 0,
+              sent: 0,
+              reply: 0,
+              interview: 0
+            };
+          }
+
+          jobStats[jobId].total += 1;
+
+          if (item.sent_status === "送信済み") {
+            jobStats[jobId].sent += 1;
+          }
+
+          if (item.sent_status === "返信あり") {
+            jobStats[jobId].reply += 1;
+          }
+
+          if (item.sent_status === "面談設定") {
+            jobStats[jobId].interview += 1;
+          }
+        });
+
+        const perJobHtml = Object.entries(jobStats)
+          .map(([jobId, stat]) => {
+            const jobReplyRate = stat.sent > 0
+              ? ((stat.reply / stat.sent) * 100).toFixed(1)
+              : "0.0";
+
+            const jobInterviewRate = stat.sent > 0
+              ? ((stat.interview / stat.sent) * 100).toFixed(1)
+              : "0.0";
+
+            return `
+              <div class="job-block">
+                <strong>${escapeHtml(jobId)}</strong>：
+                候補者 ${stat.total}件 /
+                返信率 ${jobReplyRate}% /
+                面談化率 ${jobInterviewRate}%
+              </div>
+            `;
+          })
+          .join("");
 
         summary.innerHTML = `
-          候補者数: ${total}件<br>
-          送付推奨: ${recommendCount}件<br>
-          送信済み: ${sentCount}件<br>
-          返信あり: ${replyCount}件（返信率 ${replyRate}%）<br>
-          面談設定: ${interviewCount}件（面談化率 ${interviewRate}%）<br>
-          見送り: ${passCount}件
+          <div class="summary-title">全体サマリー</div>
+          <div>
+            候補者数: ${total}件<br>
+            送付推奨: ${recommendCount}件<br>
+            送信済み: ${sentCount}件<br>
+            返信あり: ${replyCount}件（返信率 ${replyRate}%）<br>
+            面談設定: ${interviewCount}件（面談化率 ${interviewRate}%）<br>
+            見送り: ${passCount}件
+          </div>
+
+          <hr>
+
+          <div class="summary-title">求人ごとの成果</div>
+          <div>
+            ${perJobHtml}
+          </div>
         `;
 
         root.innerHTML = sorted.map((item, index) => `
           <div class="card">
             <div class="top">
               <div>
-                <div class="name">${index + 1}位：${item.candidate_name || "名前なし"}</div>
+                <div class="name">${index + 1}位：${escapeHtml(item.candidate_name || "名前なし")}</div>
                 <div class="meta">
-                  求人: ${item.job_id || "-"}<br>
-                  Must: ${item.must_fit || "-"} / Want: ${item.want_fit || "-"}
+                  求人: ${escapeHtml(item.job_id || "-")}<br>
+                  Must: ${escapeHtml(item.must_fit || "-")} / Want: ${escapeHtml(item.want_fit || "-")}
                 </div>
               </div>
               <div class="score ${item.send_recommendation ? "good" : "bad"}">
@@ -223,7 +304,7 @@
             </div>
 
             <div class="status-row">
-              <span class="status-badge">送信状態: ${item.sent_status || "未送信"}</span>
+              <span class="status-badge">送信状態: ${escapeHtml(item.sent_status || "未送信")}</span>
 
               <select id="status-${item.id}">
                 <option value="未送信" ${item.sent_status === "未送信" ? "selected" : ""}>未送信</option>
