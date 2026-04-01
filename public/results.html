@@ -93,7 +93,9 @@
         return;
       }
 
-      root.innerHTML = data.items.map(item => `
+      const sorted = [...data.items].sort((a, b) => (b.match_score || 0) - (a.match_score || 0));
+
+      root.innerHTML = sorted.map(item => `
         <div class="card">
           <div class="top">
             <div class="name">${item.candidate_name || "名前なし"}</div>
@@ -102,8 +104,8 @@
             </div>
           </div>
 
-          <div>求人: ${item.job_id}</div>
-          <div>Must: ${item.must_fit} / Want: ${item.want_fit}</div>
+          <div>求人: ${item.job_id || "-"}</div>
+          <div>Must: ${item.must_fit || "-"} / Want: ${item.want_fit || "-"}</div>
 
           <div class="section">
             <div class="label">送る理由</div>
