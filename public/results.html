@@ -2,6 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Scout Results</title>
   <style>
     body {
@@ -10,10 +11,24 @@
       margin: 30px auto;
       padding: 20px;
       background: #f5f5f5;
+      color: #111;
     }
 
     h1 {
       margin-bottom: 24px;
+    }
+
+    .toolbar {
+      margin-bottom: 18px;
+    }
+
+    .toolbar button {
+      padding: 10px 14px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: #111;
+      color: white;
     }
 
     .card {
@@ -27,8 +42,10 @@
     .top {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-start;
+      gap: 16px;
       margin-bottom: 12px;
+      flex-wrap: wrap;
     }
 
     .name {
@@ -49,8 +66,13 @@
       color: #d22;
     }
 
+    .meta {
+      color: #444;
+      line-height: 1.7;
+    }
+
     .section {
-      margin-top: 12px;
+      margin-top: 14px;
     }
 
     .label {
@@ -64,10 +86,34 @@
       padding: 12px;
       border-radius: 8px;
       white-space: pre-wrap;
+      line-height: 1.7;
     }
 
-    button {
+    .status-row {
+      margin-top: 14px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: bold;
+      background: #eee;
+    }
+
+    .actions {
       margin-top: 12px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button.action {
       padding: 10px 14px;
       border: none;
       border-radius: 8px;
@@ -75,65 +121,125 @@
       background: #111;
       color: white;
     }
+
+    button.sub {
+      background: #666;
+    }
+
+    select {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background: white;
+    }
   </style>
 </head>
 <body>
   <h1>Scout Results</h1>
+
+  <div class="toolbar">
+    <button onclick="load()">再読み込み</button>
+  </div>
+
   <div id="list">読み込み中...</div>
 
   <script>
     async function load() {
-      const res = await fetch("/scout-results");
-      const data = await res.json();
-
       const root = document.getElementById("list");
+      root.innerHTML = "読み込み中...";
 
-      if (!data.items || data.items.length === 0) {
-        root.innerHTML = "まだ候補者がありません";
-        return;
-      }
+      try {
+        const res = await fetch("/scout-results");
+        const data = await res.json();
 
-      const sorted = [...data.items].sort((a, b) => (b.match_score || 0) - (a.match_score || 0));
+        if (!data.items || data.items.length === 0) {
+          root.innerHTML = "まだ候補者がありません";
+          return;
+        }
 
-      root.innerHTML = sorted.map(item => `
-        <div class="card">
-          <div class="top">
-            <div class="name">${item.candidate_name || "名前なし"}</div>
-            <div class="score ${item.send_recommendation ? "good" : "bad"}">
-              ${item.match_score}点 / ${item.send_recommendation ? "送る" : "見送り"}
+        const sorted = [...data.items].sort((a, b) => (b.match_score || 0) - (a.match_score || 0));
+
+        root.innerHTML = sorted.map((item, index) => `
+          <div class="card">
+            <div class="top">
+              <div>
+                <div class="name">${index + 1}位：${item.candidate_name || "名前なし"}</div>
+                <div class="meta">
+                  求人: ${item.job_id || "-"}<br>
+                  Must: ${item.must_fit || "-"} / Want: ${item.want_fit || "-"}
+                </div>
+              </div>
+              <div class="score ${item.send_recommendation ? "good" : "bad"}">
+                ${item.match_score || 0}点 / ${item.send_recommendation ? "送る" : "見送り"}
+              </div>
+            </div>
+
+            <div class="status-row">
+              <span class="status-badge">送信状態: ${item.sent_status || "未送信"}</span>
+
+              <select id="status-${item.id}">
+                <option value="未送信" ${item.sent_status === "未送信" ? "selected" : ""}>未送信</option>
+                <option value="送信済み" ${item.sent_status === "送信済み" ? "selected" : ""}>送信済み</option>
+                <option value="返信あり" ${item.sent_status === "返信あり" ? "selected" : ""}>返信あり</option>
+                <option value="見送り" ${item.sent_status === "見送り" ? "selected" : ""}>見送り</option>
+              </select>
+
+              <button class="action sub" onclick="updateStatus('${item.id}')">状態更新</button>
+            </div>
+
+            <div class="section">
+              <div class="label">送る理由</div>
+              <ul>
+                ${(item.why_send || []).map(x => `<li>${x}</li>`).join("")}
+              </ul>
+            </div>
+
+            <div class="section">
+              <div class="label">訴求ポイント</div>
+              <ul>
+                ${(item.appeal_points || []).map(x => `<li>${x}</li>`).join("")}
+              </ul>
+            </div>
+
+            <div class="section">
+              <div class="label">スカウト文</div>
+              <div class="message" id="msg-${item.id}">${item.scout_message || ""}</div>
+              <div class="actions">
+                <button class="action" onclick="copyMessage('${item.id}')">コピー</button>
+              </div>
             </div>
           </div>
-
-          <div>求人: ${item.job_id || "-"}</div>
-          <div>Must: ${item.must_fit || "-"} / Want: ${item.want_fit || "-"}</div>
-
-          <div class="section">
-            <div class="label">送る理由</div>
-            <ul>
-              ${(item.why_send || []).map(x => `<li>${x}</li>`).join("")}
-            </ul>
-          </div>
-
-          <div class="section">
-            <div class="label">訴求ポイント</div>
-            <ul>
-              ${(item.appeal_points || []).map(x => `<li>${x}</li>`).join("")}
-            </ul>
-          </div>
-
-          <div class="section">
-            <div class="label">スカウト文</div>
-            <div class="message" id="msg-${item.id}">${item.scout_message || ""}</div>
-            <button onclick="copyMessage('${item.id}')">コピー</button>
-          </div>
-        </div>
-      `).join("");
+        `).join("");
+      } catch (e) {
+        root.innerHTML = "読み込みエラー: " + e.message;
+      }
     }
 
     function copyMessage(id) {
       const text = document.getElementById(`msg-${id}`).innerText;
       navigator.clipboard.writeText(text);
       alert("コピーしました");
+    }
+
+    async function updateStatus(id) {
+      const sent_status = document.getElementById(`status-${id}`).value;
+
+      const res = await fetch("/update-sent-status", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ id, sent_status })
+      });
+
+      const data = await res.json();
+
+      if (data.ok) {
+        alert("更新しました");
+        load();
+      } else {
+        alert("更新失敗: " + (data.error || "unknown error"));
+      }
     }
 
     load();
