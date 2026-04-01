@@ -102,11 +102,29 @@ ${JSON.stringify(job, null, 2)}
 }
 
 async function saveScoutResult(result, candidate, job) {
+  const candidateId = candidate.id || null;
+  const jobId = job.id || null;
+
+  if (!candidateId || !jobId) {
+    throw new Error("candidate.id と job.id は必須です。");
+  }
+
+  const { data: existing, error: findError } = await supabase
+    .from("scout_candidates")
+    .select("id, sent_status")
+    .eq("candidate_id", candidateId)
+    .eq("job_id", jobId)
+    .maybeSingle();
+
+  if (findError) {
+    throw findError;
+  }
+
   const payload = {
-    candidate_id: candidate.id || null,
+    candidate_id: candidateId,
     candidate_name: candidate.name || null,
     candidate_profile: candidate || {},
-    job_id: job.id || null,
+    job_id: jobId,
     match_score: result.match_score ?? null,
     must_fit: result.must_fit || null,
     want_fit: result.want_fit || null,
@@ -114,8 +132,20 @@ async function saveScoutResult(result, candidate, job) {
     why_send: result.why_send || [],
     appeal_points: result.appeal_points || [],
     scout_message: result.scout_message || "",
-    sent_status: "未送信",
+    sent_status: existing?.sent_status || "未送信",
   };
+
+  if (existing?.id) {
+    const { data, error } = await supabase
+      .from("scout_candidates")
+      .update(payload)
+      .eq("id", existing.id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
 
   const { data, error } = await supabase
     .from("scout_candidates")
@@ -205,7 +235,7 @@ app.get("/scout-results", async (req, res) => {
     const { data, error } = await supabase
       .from("scout_candidates")
       .select("*")
-      .order("created_at", { ascending: false })
+      .order("match_score", { ascending: false })
       .limit(100);
 
     if (error) throw error;
