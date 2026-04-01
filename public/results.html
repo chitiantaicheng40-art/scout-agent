@@ -49,8 +49,15 @@
     }
 
     .job-block {
-      margin-top: 8px;
+      margin-top: 12px;
       padding-top: 8px;
+    }
+
+    .job-comment {
+      color: #666;
+      font-size: 14px;
+      margin-top: 4px;
+      line-height: 1.6;
     }
 
     .card {
@@ -270,12 +277,27 @@
               ? ((stat.interview / stat.sent) * 100).toFixed(1)
               : "0.0";
 
+            let suggestion = "";
+            const replyNum = Number(jobReplyRate);
+            const interviewNum = Number(jobInterviewRate);
+
+            if (stat.sent === 0) {
+              suggestion = "→ 送信実績がまだないため、まずは上位候補への送信を進める";
+            } else if (replyNum < 20) {
+              suggestion = "→ 返信率が低いため、スカウト文かMust条件の見直し推奨";
+            } else if (interviewNum >= 50) {
+              suggestion = "→ 面談化率が高く、他求人への横展開候補";
+            } else {
+              suggestion = "→ 現状維持しつつ、返信率向上を観察";
+            }
+
             return `
               <div class="job-block">
                 <strong>${escapeHtml(jobId)}</strong>：
                 候補者 ${stat.total}件 /
                 返信率 ${jobReplyRate}% /
                 面談化率 ${jobInterviewRate}%
+                <div class="job-comment">${escapeHtml(suggestion)}</div>
               </div>
             `;
           })
