@@ -38,6 +38,30 @@
       line-height: 1.7;
     }
 
+    .template-box {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 20px;
+    }
+
+    .template-box label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .template-box select {
+      width: 100%;
+      max-width: 320px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background: white;
+      font-size: 14px;
+    }
+
     textarea {
       width: 100%;
       height: 260px;
@@ -95,14 +119,26 @@
 <body>
   <h1>Scout Agent Test</h1>
   <div class="sub">
-    1人でも複数人でも評価できます。複数人で試すときは、Candidates に配列のまま入れてください。
+    1人でも複数人でも評価できます。最初は営業企画 / RevOps / CS企画のテンプレで使い、後から他職種へ広げる前提です。
   </div>
 
   <div class="tips">
     <strong>使い方</strong><br />
     ・Candidates は <code>[ ... ]</code> で囲むと複数人評価です。<br />
-    ・Job は1つの求人JSONです。<br />
+    ・求人テンプレを選ぶと Job が自動で入ります。<br />
     ・結果で <code>"mode": "bulk"</code> が出れば複数人比較できています。
+  </div>
+
+  <div class="template-box">
+    <label for="jobTemplate">求人テンプレ</label>
+    <select id="jobTemplate" onchange="applyJobTemplate()">
+      <option value="">選択してください</option>
+      <option value="sales_planning">営業企画</option>
+      <option value="revops">RevOps</option>
+      <option value="cs_planning">CS企画</option>
+      <option value="ra">人材紹介RA</option>
+      <option value="ta">採用人事 / Talent Acquisition</option>
+    </select>
   </div>
 
   <h2>Candidates</h2>
@@ -164,6 +200,75 @@
   <pre id="result">ここに結果が表示されます</pre>
 
   <script>
+    const JOB_TEMPLATES = {
+      sales_planning: {
+        id: "job_sales_planning",
+        title: "営業企画",
+        must: [
+          "法人営業経験",
+          "業務改善経験"
+        ],
+        want: [
+          "営業企画経験",
+          "KPI設計",
+          "関係者巻き込み"
+        ]
+      },
+      revops: {
+        id: "job_revops",
+        title: "RevOps",
+        must: [
+          "法人営業経験",
+          "データを使った改善経験"
+        ],
+        want: [
+          "SaaS",
+          "Salesforce",
+          "CRM運用",
+          "KPI設計"
+        ]
+      },
+      cs_planning: {
+        id: "job_cs_planning",
+        title: "CS企画",
+        must: [
+          "顧客対応経験",
+          "改善提案経験"
+        ],
+        want: [
+          "SaaS",
+          "カスタマーサクセス",
+          "業務設計"
+        ]
+      },
+      ra: {
+        id: "job_ra",
+        title: "人材紹介RA",
+        must: [
+          "法人営業経験",
+          "採用支援または人材業界への関心"
+        ],
+        want: [
+          "人材紹介経験",
+          "採用課題ヒアリング",
+          "候補者提案経験"
+        ]
+      },
+      ta: {
+        id: "job_ta",
+        title: "採用人事 / Talent Acquisition",
+        must: [
+          "採用業務への関心",
+          "候補者対応または対人折衝経験"
+        ],
+        want: [
+          "中途採用経験",
+          "ダイレクトリクルーティング",
+          "採用広報"
+        ]
+      }
+    };
+
     const singleSample = `[
   {
     "id": "candidate_001",
@@ -221,6 +326,16 @@
     function fillBulkSample() {
       document.getElementById("candidates").value = bulkSample;
       document.getElementById("status").textContent = "2人サンプルをセットしました";
+    }
+
+    function applyJobTemplate() {
+      const selected = document.getElementById("jobTemplate").value;
+      if (!selected) return;
+
+      document.getElementById("job").value =
+        JSON.stringify(JOB_TEMPLATES[selected], null, 2);
+
+      document.getElementById("status").textContent = "求人テンプレを反映しました";
     }
 
     async function runTest() {
