@@ -7,7 +7,7 @@
   <style>
     body {
       font-family: sans-serif;
-      max-width: 1000px;
+      max-width: 1100px;
       margin: 40px auto;
       padding: 20px;
       background: #f7f7f7;
@@ -29,7 +29,7 @@
       line-height: 1.6;
     }
 
-    .tips {
+    .box {
       background: #fff;
       border: 1px solid #ddd;
       border-radius: 10px;
@@ -38,23 +38,14 @@
       line-height: 1.7;
     }
 
-    .template-box {
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      padding: 14px 16px;
-      margin-bottom: 20px;
-    }
-
-    .template-box label {
+    .box label {
       display: block;
       font-weight: bold;
       margin-bottom: 8px;
     }
 
-    .template-box select {
-      width: 100%;
-      max-width: 320px;
+    select,
+    input[type="number"] {
       padding: 10px 12px;
       border-radius: 8px;
       border: 1px solid #ccc;
@@ -75,6 +66,10 @@
       border: 1px solid #ccc;
       background: white;
       resize: vertical;
+    }
+
+    .csv-area {
+      height: 180px;
     }
 
     .actions {
@@ -98,6 +93,12 @@
       background: #666;
     }
 
+    button.ghost {
+      background: #f0f0f0;
+      color: #111;
+      border: 1px solid #ccc;
+    }
+
     .status {
       margin: 10px 0 18px;
       color: #444;
@@ -114,22 +115,37 @@
       overflow-x: auto;
       line-height: 1.6;
     }
+
+    .row {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .small {
+      color: #666;
+      font-size: 13px;
+      line-height: 1.6;
+      margin-top: 6px;
+    }
   </style>
 </head>
 <body>
   <h1>Scout Agent Test</h1>
   <div class="sub">
-    1人でも複数人でも評価できます。最初は営業企画 / RevOps / CS企画のテンプレで使い、後から他職種へ広げる前提です。
+    求人テンプレ選択、JSON入力、CSV貼り付けに対応しています。最初は営業企画 / RevOps / CS企画などの型で使い、後から汎用化する前提です。
   </div>
 
-  <div class="tips">
+  <div class="box">
     <strong>使い方</strong><br />
-    ・Candidates は <code>[ ... ]</code> で囲むと複数人評価です。<br />
     ・求人テンプレを選ぶと Job が自動で入ります。<br />
+    ・Candidates は JSON のままでも使えます。<br />
+    ・CSV貼り付け欄に候補者一覧を入れて「CSVをCandidatesへ変換」を押すと JSON に変換されます。<br />
     ・結果で <code>"mode": "bulk"</code> が出れば複数人比較できています。
   </div>
 
-  <div class="template-box">
+  <div class="box">
     <label for="jobTemplate">求人テンプレ</label>
     <select id="jobTemplate" onchange="applyJobTemplate()">
       <option value="">選択してください</option>
@@ -139,6 +155,21 @@
       <option value="ra">人材紹介RA</option>
       <option value="ta">採用人事 / Talent Acquisition</option>
     </select>
+  </div>
+
+  <h2>CSV貼り付け</h2>
+  <textarea id="csvInput" class="csv-area">id,name,experience,strengths
+candidate_001,池田太晟,"リクルートで法人営業|営業企画・業務改善に関心|JFEスチールで生産管理・設備導入","顧客課題整理|関係者巻き込み|改善提案"
+candidate_002,山田花子,"SaaS企業で営業企画|Salesforce運用|KPI設計|CRM改善プロジェクト","データ分析|CRM運用|KPI設計"</textarea>
+
+  <div class="actions">
+    <button class="secondary" onclick="convertCsvToCandidates()">CSVをCandidatesへ変換</button>
+    <button class="ghost" onclick="fillCsvSample()">CSVサンプルに戻す</button>
+  </div>
+
+  <div class="small">
+    対応CSV列: <code>id,name,experience,strengths</code><br />
+    experience / strengths の複数値は <code>|</code> 区切りで入れてください。
   </div>
 
   <h2>Candidates</h2>
@@ -176,18 +207,29 @@
 
   <h2>Job</h2>
   <textarea id="job">{
-  "id": "job_001",
-  "title": "営業企画 / RevOps",
+  "id": "job_revops",
+  "title": "RevOps",
   "must": [
     "法人営業経験",
     "データを使った改善経験"
   ],
   "want": [
     "SaaS",
-    "営業企画",
-    "CRM運用"
+    "Salesforce",
+    "CRM運用",
+    "KPI設計"
   ]
 }</textarea>
+
+  <div class="box">
+    <div class="row">
+      <label for="topN" style="margin-bottom: 0;">上位表示件数</label>
+      <input id="topN" type="number" min="1" max="100" value="5" />
+    </div>
+    <div class="small">
+      bulk の結果を上位何件まで見せるかの表示用です。保存自体は全件行われます。
+    </div>
+  </div>
 
   <div class="actions">
     <button onclick="runTest()">評価する</button>
@@ -318,6 +360,10 @@
   }
 ]`;
 
+    const csvSample = `id,name,experience,strengths
+candidate_001,池田太晟,"リクルートで法人営業|営業企画・業務改善に関心|JFEスチールで生産管理・設備導入","顧客課題整理|関係者巻き込み|改善提案"
+candidate_002,山田花子,"SaaS企業で営業企画|Salesforce運用|KPI設計|CRM改善プロジェクト","データ分析|CRM運用|KPI設計"`;
+
     function fillSingleSample() {
       document.getElementById("candidates").value = singleSample;
       document.getElementById("status").textContent = "1人サンプルをセットしました";
@@ -326,6 +372,11 @@
     function fillBulkSample() {
       document.getElementById("candidates").value = bulkSample;
       document.getElementById("status").textContent = "2人サンプルをセットしました";
+    }
+
+    function fillCsvSample() {
+      document.getElementById("csvInput").value = csvSample;
+      document.getElementById("status").textContent = "CSVサンプルをセットしました";
     }
 
     function applyJobTemplate() {
@@ -338,6 +389,109 @@
       document.getElementById("status").textContent = "求人テンプレを反映しました";
     }
 
+    function parseCsvLine(line) {
+      const result = [];
+      let current = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        const next = line[i + 1];
+
+        if (char === '"') {
+          if (inQuotes && next === '"') {
+            current += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === "," && !inQuotes) {
+          result.push(current);
+          current = "";
+        } else {
+          current += char;
+        }
+      }
+
+      result.push(current);
+      return result;
+    }
+
+    function splitMultiValue(value) {
+      if (!value) return [];
+      return value
+        .split("|")
+        .map(v => v.trim())
+        .filter(Boolean);
+    }
+
+    function convertCsvToCandidates() {
+      try {
+        const csv = document.getElementById("csvInput").value.trim();
+
+        if (!csv) {
+          document.getElementById("status").textContent = "CSVが空です";
+          return;
+        }
+
+        const lines = csv
+          .split(/\r?\n/)
+          .map(line => line.trim())
+          .filter(Boolean);
+
+        if (lines.length < 2) {
+          document.getElementById("status").textContent = "CSVの行数が足りません";
+          return;
+        }
+
+        const headers = parseCsvLine(lines[0]).map(h => h.trim());
+        const requiredHeaders = ["id", "name", "experience", "strengths"];
+
+        for (const h of requiredHeaders) {
+          if (!headers.includes(h)) {
+            throw new Error(`CSVヘッダーに ${h} がありません`);
+          }
+        }
+
+        const idx = {
+          id: headers.indexOf("id"),
+          name: headers.indexOf("name"),
+          experience: headers.indexOf("experience"),
+          strengths: headers.indexOf("strengths")
+        };
+
+        const candidates = lines.slice(1).map(line => {
+          const cols = parseCsvLine(line);
+
+          return {
+            id: (cols[idx.id] || "").trim(),
+            name: (cols[idx.name] || "").trim(),
+            experience: splitMultiValue((cols[idx.experience] || "").trim()),
+            strengths: splitMultiValue((cols[idx.strengths] || "").trim())
+          };
+        }).filter(item => item.id && item.name);
+
+        document.getElementById("candidates").value = JSON.stringify(candidates, null, 2);
+        document.getElementById("status").textContent = `CSVを ${candidates.length} 件のCandidatesに変換しました`;
+      } catch (e) {
+        document.getElementById("status").textContent = "CSV変換エラー: " + e.message;
+      }
+    }
+
+    function summarizeBulkResult(data, topN) {
+      if (!data.items || !Array.isArray(data.items)) return data;
+
+      const topItems = data.items.slice(0, topN);
+
+      return {
+        ok: data.ok,
+        mode: data.mode,
+        total: data.total,
+        showing_top: topItems.length,
+        items: topItems
+      };
+    }
+
     async function runTest() {
       const status = document.getElementById("status");
       const result = document.getElementById("result");
@@ -348,6 +502,7 @@
 
         const candidates = JSON.parse(document.getElementById("candidates").value);
         const job = JSON.parse(document.getElementById("job").value);
+        const topN = Number(document.getElementById("topN").value || 5);
 
         const response = await fetch("/evaluate-scout", {
           method: "POST",
@@ -359,12 +514,14 @@
 
         const data = await response.json();
 
-        result.textContent = JSON.stringify(data, null, 2);
-
-        if (data.ok) {
-          status.textContent = `完了: ${data.mode || "single"} モードで評価しました`;
+        if (data.ok && data.mode === "bulk") {
+          result.textContent = JSON.stringify(summarizeBulkResult(data, topN), null, 2);
+          status.textContent = `完了: bulk モードで評価しました（全${data.total}件 / 上位${Math.min(topN, data.total)}件を表示）`;
         } else {
-          status.textContent = "APIエラーが返りました";
+          result.textContent = JSON.stringify(data, null, 2);
+          status.textContent = data.ok
+            ? `完了: ${data.mode || "single"} モードで評価しました`
+            : "APIエラーが返りました";
         }
       } catch (e) {
         result.textContent = "エラー: " + e.message;
