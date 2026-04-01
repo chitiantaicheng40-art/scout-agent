@@ -277,16 +277,19 @@
               ? ((stat.interview / stat.sent) * 100).toFixed(1)
               : "0.0";
 
-            let suggestion = "";
             const replyNum = Number(jobReplyRate);
             const interviewNum = Number(jobInterviewRate);
 
+            let suggestion = "";
+
             if (stat.sent === 0) {
               suggestion = "→ 送信実績がまだないため、まずは上位候補への送信を進める";
-            } else if (replyNum < 20) {
-              suggestion = "→ 返信率が低いため、スカウト文かMust条件の見直し推奨";
             } else if (interviewNum >= 50) {
               suggestion = "→ 面談化率が高く、他求人への横展開候補";
+            } else if (replyNum >= 50) {
+              suggestion = "→ 返信率が高く、現在の訴求文を維持推奨";
+            } else if (replyNum < 20) {
+              suggestion = "→ 返信率が低いため、スカウト文かMust条件の見直し推奨";
             } else {
               suggestion = "→ 現状維持しつつ、返信率向上を観察";
             }
