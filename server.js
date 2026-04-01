@@ -7,6 +7,7 @@ const app = express();
 const PORT = process.env.PORT || 10000;
 
 app.use(express.json());
+app.use(express.static("public"));
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
