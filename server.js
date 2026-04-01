@@ -18,9 +18,6 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY
 );
 
-// -----------------------------
-// basic routes
-// -----------------------------
 app.get("/", (req, res) => {
   res.status(200).send("scout-agent is running");
 });
@@ -33,9 +30,6 @@ app.get("/health", (req, res) => {
   });
 });
 
-// -----------------------------
-// helpers
-// -----------------------------
 function normalizeArrayJson(value) {
   if (Array.isArray(value)) return value;
   if (!value) return [];
@@ -120,6 +114,7 @@ async function saveScoutResult(result, candidate, job) {
     why_send: result.why_send || [],
     appeal_points: result.appeal_points || [],
     scout_message: result.scout_message || "",
+    sent_status: "未送信",
   };
 
   const { data, error } = await supabase
@@ -144,9 +139,6 @@ async function evaluateAndSaveOne(candidate, job) {
   };
 }
 
-// -----------------------------
-// api routes
-// -----------------------------
 app.post("/evaluate-scout", async (req, res) => {
   try {
     const { candidate, candidates, job } = req.body;
@@ -158,7 +150,6 @@ app.post("/evaluate-scout", async (req, res) => {
       });
     }
 
-    // 複数 candidates 対応
     if (Array.isArray(candidates)) {
       if (candidates.length === 0) {
         return res.status(400).json({
@@ -183,7 +174,6 @@ app.post("/evaluate-scout", async (req, res) => {
       });
     }
 
-    // 単体 candidate 対応
     if (!candidate) {
       return res.status(400).json({
         ok: false,
@@ -226,6 +216,48 @@ app.get("/scout-results", async (req, res) => {
     });
   } catch (error) {
     console.error("scout-results error:", error);
+
+    return res.status(500).json({
+      ok: false,
+      error: error.message || "internal server error",
+    });
+  }
+});
+
+app.post("/update-sent-status", async (req, res) => {
+  try {
+    const { id, sent_status } = req.body;
+
+    if (!id || !sent_status) {
+      return res.status(400).json({
+        ok: false,
+        error: "id と sent_status は必須です。",
+      });
+    }
+
+    const allowed = ["未送信", "送信済み", "返信あり", "見送り"];
+    if (!allowed.includes(sent_status)) {
+      return res.status(400).json({
+        ok: false,
+        error: "sent_status の値が不正です。",
+      });
+    }
+
+    const { data, error } = await supabase
+      .from("scout_candidates")
+      .update({ sent_status })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return res.status(200).json({
+      ok: true,
+      item: data,
+    });
+  } catch (error) {
+    console.error("update-sent-status error:", error);
 
     return res.status(500).json({
       ok: false,
