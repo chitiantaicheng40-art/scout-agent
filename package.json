@@ -1,0 +1,16 @@
+{
+  "name": "line-ca-agent",
+  "version": "1.0.0",
+  "description": "LINE Career Advisor Bot",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.56.0",
+    "axios": "^1.7.7",
+    "dotenv": "^17.2.1",
+    "express": "^4.19.2",
+    "openai": "^4.56.0"
+  }
+}
