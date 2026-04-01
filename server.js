@@ -116,9 +116,7 @@ async function saveScoutResult(result, candidate, job) {
     .eq("job_id", jobId)
     .maybeSingle();
 
-  if (findError) {
-    throw findError;
-  }
+  if (findError) throw findError;
 
   const payload = {
     candidate_id: candidateId,
@@ -265,7 +263,7 @@ app.post("/update-sent-status", async (req, res) => {
       });
     }
 
-    const allowed = ["未送信", "送信済み", "返信あり", "見送り"];
+    const allowed = ["未送信", "送信済み", "返信あり", "面談設定", "見送り"];
     if (!allowed.includes(sent_status)) {
       return res.status(400).json({
         ok: false,
