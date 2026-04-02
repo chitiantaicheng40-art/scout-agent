@@ -7,8 +7,6 @@ const { registerAutoScoutRoutes } = require("./autoScoutRoutes");
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-registerAutoScoutRoutes({ app, supabase });
-
 app.use(express.json({ limit: "2mb" }));
 app.use(express.static("public"));
 
@@ -20,6 +18,8 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_ANON_KEY
 );
+
+registerAutoScoutRoutes({ app, supabase });
 
 app.get("/", (req, res) => {
   res.status(200).send("scout-agent is running");
