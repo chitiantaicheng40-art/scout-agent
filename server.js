@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const OpenAI = require("openai");
 const { createClient } = require("@supabase/supabase-js");
+const { registerAutoScoutRoutes } = require("./autoScoutRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 10000;
