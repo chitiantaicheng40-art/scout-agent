@@ -554,23 +554,24 @@
   const confirmed = confirm(
     "送付推奨の候補者に対して、自動でスカウトメールを送信します。実行しますか？"
   );
-
   if (!confirmed) return;
 
   try {
-    const sendCandidates = (window.jobs || []).filter(c => {
+    const source = window.currentItems || [];
+
+    const sendCandidates = source.filter(c => {
       const recommend =
+        c.send_recommendation === "送る" ||
         c.recommend === true ||
         c.recommend === "true" ||
         c.send_recommended === true;
 
-      const score = Number(c.score || c.total_score || 0);
-
-      return recommend && score >= 80;
+      return recommend;
     });
 
     if (sendCandidates.length === 0) {
       alert("送信対象候補者がいません。");
+      console.log("currentItems:", window.currentItems);
       return;
     }
 
@@ -580,7 +581,7 @@
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        scoreThreshold: 80,
+        scoreThreshold: 0,
         dryRun: false,
         skipDuplicate: true,
         candidates: sendCandidates,
