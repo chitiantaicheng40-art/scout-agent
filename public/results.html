@@ -549,6 +549,60 @@
       URL.revokeObjectURL(url);
     }
 
+    document.getElementById("autoSendBtn").addEventListener("click", async () => {
+  const confirmed = confirm(
+    "送付推奨の候補者に対して、自動でスカウトメールを送信します。実行しますか？"
+  );
+
+  if (!confirmed) return;
+
+  try {
+    const sendCandidates = candidates.filter(c => {
+      const recommend =
+        c.recommend === true ||
+        c.recommend === "true" ||
+        c.send_recommended === true;
+
+      const score = Number(c.score || c.total_score || 0);
+
+      return recommend && score >= 80;
+    });
+
+    if (sendCandidates.length === 0) {
+      alert("送信対象候補者がいません。");
+      return;
+    }
+
+    const res = await fetch("/api/auto-send-scouts", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        scoreThreshold: 80,
+        dryRun: false,
+        skipDuplicate: true,
+        candidates: sendCandidates,
+      }),
+    });
+
+    const json = await res.json();
+
+    if (!json.ok) {
+      throw new Error(json.error || "送信失敗");
+    }
+
+    alert(
+      `送信完了\n送信: ${json.summary.sent_count}件\n失敗: ${json.summary.failed_count}件\nスキップ: ${json.summary.skipped_count}件`
+    );
+
+    location.reload();
+  } catch (e) {
+    console.error(e);
+    alert("送信時にエラー: " + e.message);
+  }
+});
+    
     load();
   </script>
 </body>
