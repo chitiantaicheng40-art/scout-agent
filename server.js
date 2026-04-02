@@ -266,16 +266,6 @@ app.get("/scout-results", async (req, res) => {
     });
   }
 });
-  } catch (error) {
-    console.error("scout-results error:", error);
-
-    return res.status(500).json({
-      ok: false,
-      error: error.message || "internal server error",
-    });
-  }
-});
-
 app.post("/update-sent-status", async (req, res) => {
   try {
     const { id, sent_status } = req.body;
