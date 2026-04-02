@@ -39,8 +39,82 @@ function normalizeArrayJson(value) {
   return [value];
 }
 
-function cleanResult(result = {}) {
-  return {
+function getCandidateEmail(candidate = {}) {
+  return (
+    candidate.candidate_email ||
+    candidate.email ||
+    candidate.mail ||
+    candidate.email_address ||
+    candidate.emailAddress ||
+    candidate.contact_email ||
+    ""
+  );
+}
+
+function buildScoutSubject(candidate = {}, job = {}) {
+  const name = candidate.name || candidate.candidate_name || "候補者様";
+  const jobTitle =
+    job.title || job.job_title || job.job_id || job.id || "ポジション";
+  const current = candidate.current_company || candidate.current_role || "";
+
+  if (current) {
+    return `${current}でのご経験を拝見し、${jobTitle}の件でご連絡しました`;
+  }
+
+  return `${name}様のご経験を拝見し、${jobTitle}の件でご連絡しました`;
+}
+
+function buildScoutMessage(candidate = {}, job = {}, evaluation = {}) {
+  const name = candidate.name || candidate.candidate_name || "候補者様";
+  const jobTitle =
+    job.title || job.job_title || job.job_id || job.id || "ポジション";
+  const companyName = process.env.SCOUT_COMPANY_NAME || "弊社";
+  const senderName = process.env.SCOUT_SENDER_NAME || "採用担当";
+
+  const strengths = normalizeArrayJson(candidate.strengths);
+  const experience = normalizeArrayJson(candidate.experience);
+  const whySend = normalizeArrayJson(evaluation.why_send);
+  const appealPoints = normalizeArrayJson(evaluation.appeal_points);
+
+  const strengthsText = strengths.length
+    ? `特に ${strengths.slice(0, 2).join("、")} のご経験に魅力を感じました。`
+    : "";
+
+  const expText = experience.length
+    ? `これまでのご経験（${experience.slice(0, 2).join("、")}）は、今回の募集と親和性が高いと感じています。`
+    : "";
+
+  const whyText = whySend.length
+    ? `今回ご連絡した理由は、${whySend.slice(0, 2).join("、")}ためです。`
+    : "";
+
+  const appealText = appealPoints.length
+    ? `本ポジションでは、${appealPoints.slice(0, 2).join("、")}といった点をご提供できると考えています。`
+    : "";
+
+  return `${name}
+
+突然のご連絡失礼いたします。
+${companyName}の${senderName}と申します。
+
+ご経歴を拝見し、${jobTitle}ポジションにてぜひ一度お話したいと思いご連絡いたしました。
+
+${strengthsText}
+${expText}
+${whyText}
+${appealText}
+
+まずはカジュアルに情報交換のお時間をいただければ幸いです。
+ご関心がございましたら、お気軽にご返信ください。
+
+何卒よろしくお願いいたします。
+
+${companyName}
+${senderName}`;
+}
+
+function cleanResult(result = {}, candidate = {}, job = {}) {
+  const normalized = {
     match_score: Number(result.match_score ?? 0),
     must_fit: result.must_fit || "中",
     want_fit: result.want_fit || "中",
@@ -48,7 +122,18 @@ function cleanResult(result = {}) {
     why_send: normalizeArrayJson(result.why_send),
     appeal_points: normalizeArrayJson(result.appeal_points),
     scout_message: result.scout_message || "",
+    scout_subject: result.scout_subject || "",
   };
+
+  if (!normalized.scout_subject) {
+    normalized.scout_subject = buildScoutSubject(candidate, job);
+  }
+
+  if (!normalized.scout_message) {
+    normalized.scout_message = buildScoutMessage(candidate, job, normalized);
+  }
+
+  return normalized;
 }
 
 async function evaluateScoutCandidate(candidate, job) {
@@ -61,6 +146,7 @@ async function evaluateScoutCandidate(candidate, job) {
 - 推測で断定しない
 - 足りない情報は「確認必要」と表現する
 - 送る理由は、採用担当者が納得できるレベルで具体的に書く
+- scout_subject は候補者ごとに自然な件名にする
 - scout_message は候補者向けに自然な日本語で書く
 - テンプレ感の強い文章は禁止
 - 過度に持ち上げすぎない
@@ -81,6 +167,7 @@ ${JSON.stringify(job, null, 2)}
   "send_recommendation": true,
   "why_send": ["理由1", "理由2"],
   "appeal_points": ["訴求1", "訴求2"],
+  "scout_subject": "候補者向け件名",
   "scout_message": "候補者向けスカウト文"
 }
 `;
@@ -101,12 +188,16 @@ ${JSON.stringify(job, null, 2)}
     response_format: { type: "json_object" },
   });
 
-  return cleanResult(JSON.parse(response.choices[0].message.content));
+  return cleanResult(
+    JSON.parse(response.choices[0].message.content),
+    candidate,
+    job
+  );
 }
 
 async function saveScoutResult(result, candidate, job) {
-  const candidateId = candidate.id || null;
-  const jobId = job.id || null;
+  const candidateId = candidate.id || candidate.candidate_id || null;
+  const jobId = job.id || job.job_id || null;
 
   if (!candidateId || !jobId) {
     throw new Error("candidate.id と job.id は必須です。");
@@ -121,9 +212,15 @@ async function saveScoutResult(result, candidate, job) {
 
   if (findError) throw findError;
 
+  const scoutSubject =
+    result.scout_subject || buildScoutSubject(candidate, job);
+  const scoutMessage =
+    result.scout_message || buildScoutMessage(candidate, job, result);
+
   const payload = {
     candidate_id: candidateId,
-    candidate_name: candidate.name || null,
+    candidate_name: candidate.name || candidate.candidate_name || null,
+    candidate_email: getCandidateEmail(candidate) || null,
     candidate_profile: candidate || {},
     job_id: jobId,
     match_score: result.match_score ?? null,
@@ -132,7 +229,8 @@ async function saveScoutResult(result, candidate, job) {
     send_recommendation: result.send_recommendation ?? false,
     why_send: result.why_send || [],
     appeal_points: result.appeal_points || [],
-    scout_message: result.scout_message || "",
+    scout_subject: scoutSubject,
+    scout_message: scoutMessage,
     sent_status: existing?.sent_status || "未送信",
   };
 
@@ -163,8 +261,8 @@ async function evaluateAndSaveOne(candidate, job) {
   const saved = await saveScoutResult(result, candidate, job);
 
   return {
-    candidate_id: candidate.id || null,
-    candidate_name: candidate.name || null,
+    candidate_id: candidate.id || candidate.candidate_id || null,
+    candidate_name: candidate.name || candidate.candidate_name || null,
     result,
     saved_id: saved.id,
   };
@@ -195,7 +293,9 @@ app.post("/evaluate-scout", async (req, res) => {
         items.push(item);
       }
 
-      items.sort((a, b) => (b.result.match_score || 0) - (a.result.match_score || 0));
+      items.sort(
+        (a, b) => (b.result.match_score || 0) - (a.result.match_score || 0)
+      );
 
       return res.status(200).json({
         ok: true,
@@ -251,6 +351,19 @@ app.get("/scout-results", async (req, res) => {
         item.candidate_profile?.mail ||
         item.candidate_profile?.email_address ||
         "",
+      scout_subject:
+        item.scout_subject ||
+        buildScoutSubject(item.candidate_profile || item, {
+          id: item.job_id,
+          job_id: item.job_id,
+        }),
+      scout_message:
+        item.scout_message ||
+        buildScoutMessage(
+          item.candidate_profile || item,
+          { id: item.job_id, job_id: item.job_id },
+          item
+        ),
     }));
 
     return res.status(200).json({
@@ -266,6 +379,7 @@ app.get("/scout-results", async (req, res) => {
     });
   }
 });
+
 app.post("/update-sent-status", async (req, res) => {
   try {
     const { id, sent_status } = req.body;
