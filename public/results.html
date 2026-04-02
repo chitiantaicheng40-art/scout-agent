@@ -240,7 +240,8 @@
 
       try {
         const res = await fetch("/scout-results");
-        const data = await res.json();
+　　　　　const data = await res.json();
+　　　　　window.jobs = data.items || [];
 
         if (!data.items || data.items.length === 0) {
           window.currentItems = [];
