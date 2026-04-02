@@ -506,37 +506,38 @@
       }
 
       const rows = [
-        [
-          "rank",
-          "candidate_name",
-          "job_id",
-          "match_score",
-          "send_recommendation",
-          "sent_status",
-          "must_fit",
-          "want_fit",
-          "why_send",
-          "appeal_points",
-          "scout_message"
-        ]
-      ];
+  [
+    "rank",
+    "candidate_name",
+    "job_id",
+    "match_score",
+    "send_recommendation",
+    "sent_status",
+    "must_fit",
+    "want_fit",
+    "why_send",
+    "appeal_points",
+    "scout_subject",
+    "scout_message"
+  ]
+];
 
-      cards.forEach((item, index) => {
-        rows.push([
-          index + 1,
-          item.candidate_name || "",
-          item.job_id || "",
-          item.match_score || "",
-          item.send_recommendation ? "送る" : "見送り",
-          item.sent_status || "",
-          item.must_fit || "",
-          item.want_fit || "",
-          (item.why_send || []).join(" / "),
-          (item.appeal_points || []).join(" / "),
-          (item.scout_message || "").replace(/\n/g, " ")
-        ]);
-      });
-
+cards.forEach((item, index) => {
+  rows.push([
+    index + 1,
+    item.candidate_name || "",
+    item.job_id || "",
+    item.match_score || "",
+    item.send_recommendation ? "送る" : "見送り",
+    item.sent_status || "",
+    item.must_fit || "",
+    item.want_fit || "",
+    (item.why_send || []).join(" / "),
+    (item.appeal_points || []).join(" / "),
+    item.scout_subject || "",
+    (item.scout_message || "").replace(/\n/g, " ")
+  ]);
+});
       const csv = rows
         .map(row =>
           row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(",")
