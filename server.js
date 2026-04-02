@@ -241,7 +241,7 @@ app.get("/scout-results", async (req, res) => {
 
     if (error) throw error;
 
-    const items = (data || []).map(item => ({
+    const items = (data || []).map((item) => ({
       ...item,
       candidate_email:
         item.candidate_email ||
@@ -250,19 +250,19 @@ app.get("/scout-results", async (req, res) => {
         item.candidate_profile?.email ||
         item.candidate_profile?.mail ||
         item.candidate_profile?.email_address ||
-        ""
+        "",
     }));
 
     return res.status(200).json({
       ok: true,
-      items
+      items,
     });
   } catch (error) {
     console.error("scout-results error:", error);
 
     return res.status(500).json({
       ok: false,
-      error: error.message || "internal server error"
+      error: error.message || "internal server error",
     });
   }
 });
