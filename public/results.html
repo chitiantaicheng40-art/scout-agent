@@ -558,20 +558,28 @@
 
   try {
     const source = window.currentItems || [];
+    console.log("currentItems:", source);
 
-    const sendCandidates = source.filter(c => {
-      const recommend =
-        c.send_recommendation === "送る" ||
-        c.recommend === true ||
-        c.recommend === "true" ||
-        c.send_recommended === true;
+    const sendCandidates = source
+      .filter(item => item.send_recommendation === "送る")
+      .map(item => ({
+        id: item.candidate_id || item.id,
+        candidate_id: item.candidate_id || item.id,
+        name: item.candidate_name || item.name,
+        candidate_name: item.candidate_name || item.name,
+        email: item.candidate_email || item.email || "",
+        candidate_email: item.candidate_email || item.email || "",
+        job_id: item.job_id,
+        score: Number(item.match_score || item.score || 0),
+        recommend: true,
+        scout_subject: item.scout_subject || "",
+        scout_body: item.scout_message || item.scout_body || ""
+      }));
 
-      return recommend;
-    });
+    console.log("sendCandidates:", sendCandidates);
 
     if (sendCandidates.length === 0) {
       alert("送信対象候補者がいません。");
-      console.log("currentItems:", window.currentItems);
       return;
     }
 
@@ -589,6 +597,7 @@
     });
 
     const json = await res.json();
+    console.log("auto send result:", json);
 
     if (!json.ok) {
       throw new Error(json.error || "送信失敗");
