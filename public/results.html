@@ -561,28 +561,45 @@
     console.log("currentItems:", source);
 
   const sendCandidates = (window.currentItems || [])
-  .map(item => ({
-    id: item.candidate_id || item.id,
-    candidate_id: item.candidate_id || item.id,
-    name: item.candidate_name || item.name,
-    candidate_name: item.candidate_name || item.name,
-    email: item.candidate_email || item.email || "",
-    candidate_email: item.candidate_email || item.email || "",
-    job_id: item.job_id,
-    score: Number(item.match_score || item.score || 0),
-    recommend: item.send_recommendation === true,
-    scout_subject: item.scout_subject || "",
-    scout_body: item.scout_message || item.scout_body || ""
-  }))
-  .filter(item => {
-    return (
-      item.recommend === true &&
-      item.email &&
-      item.email.includes("@")
-    );
-  });
+  .map(item => {
+    const profile = item.candidate_profile || {};
 
-console.log("sendCandidates:", sendCandidates);
+    const email =
+      item.candidate_email ||
+      item.email ||
+      profile.email ||
+      profile.mail ||
+      profile.email_address ||
+      "";
+
+    return {
+      id: item.candidate_id || item.id,
+      candidate_id: item.candidate_id || item.id,
+      name: item.candidate_name || item.name || profile.name || "",
+      candidate_name: item.candidate_name || item.name || profile.name || "",
+      email,
+      candidate_email: email,
+      job_id: item.job_id,
+      score: Number(item.match_score || item.score || 0),
+      recommend:
+        item.send_recommendation === true ||
+        item.send_recommendation === "true",
+      scout_subject: item.scout_subject || "",
+      scout_body: item.scout_message || item.scout_body || ""
+    };
+  })
+  .filter(item => item.recommend && item.email && item.email.includes("@"));
+
+console.log(
+  (window.currentItems || []).map(x => ({
+    name: x.candidate_name,
+    candidate_email: x.candidate_email,
+    email: x.email,
+    profile_email: x.candidate_profile?.email,
+    profile_mail: x.candidate_profile?.mail,
+    profile_email_address: x.candidate_profile?.email_address
+  }))
+);
 
     if (sendCandidates.length === 0) {
       alert("送信対象候補者がいません。");
