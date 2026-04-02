@@ -7,6 +7,8 @@ const { registerAutoScoutRoutes } = require("./autoScoutRoutes");
 const app = express();
 const PORT = process.env.PORT || 10000;
 
+registerAutoScoutRoutes({ app, supabase });
+
 app.use(express.json({ limit: "2mb" }));
 app.use(express.static("public"));
 
