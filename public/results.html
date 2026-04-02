@@ -560,23 +560,21 @@
     const source = window.currentItems || [];
     console.log("currentItems:", source);
 
-    const sendCandidates = source
-  .filter(item => item.send_recommendation === true)
-  .map(item => ({
-    id: item.candidate_id || item.id,
-    candidate_id: item.candidate_id || item.id,
-    name: item.candidate_name || item.name,
-    candidate_name: item.candidate_name || item.name,
-    email: item.candidate_email || item.email || "",
-    candidate_email: item.candidate_email || item.email || "",
-    job_id: item.job_id,
-    score: Number(item.match_score || item.score || 0),
-    recommend: true,
-    scout_subject: item.scout_subject || "",
-    scout_body: item.scout_message || item.scout_body || ""
-  }));
+   const sendCandidates = (window.currentItems || []).map(item => ({
+  id: item.candidate_id || item.id,
+  candidate_id: item.candidate_id || item.id,
+  name: item.candidate_name || item.name,
+  candidate_name: item.candidate_name || item.name,
+  email: item.candidate_email || item.email || "chitiantaicheng40@gmail.com",
+  candidate_email: item.candidate_email || item.email || "chitiantaicheng40@gmail.com",
+  job_id: item.job_id,
+  score: Number(item.match_score || item.score || 0),
+  recommend: true,
+  scout_subject: item.scout_subject || "",
+  scout_body: item.scout_message || item.scout_body || ""
+}));
 
-    console.log("sendCandidates:", sendCandidates);
+console.log("sendCandidates:", sendCandidates);
 
     if (sendCandidates.length === 0) {
       alert("送信対象候補者がいません。");
