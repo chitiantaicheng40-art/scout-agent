@@ -241,10 +241,31 @@ app.get("/scout-results", async (req, res) => {
 
     if (error) throw error;
 
+    const items = (data || []).map(item => ({
+      ...item,
+      candidate_email:
+        item.candidate_email ||
+        item.email ||
+        item.candidate_profile?.candidate_email ||
+        item.candidate_profile?.email ||
+        item.candidate_profile?.mail ||
+        item.candidate_profile?.email_address ||
+        ""
+    }));
+
     return res.status(200).json({
       ok: true,
-      items: data,
+      items
     });
+  } catch (error) {
+    console.error("scout-results error:", error);
+
+    return res.status(500).json({
+      ok: false,
+      error: error.message || "internal server error"
+    });
+  }
+});
   } catch (error) {
     console.error("scout-results error:", error);
 
