@@ -557,7 +557,7 @@
   if (!confirmed) return;
 
   try {
-    const sendCandidates = candidates.filter(c => {
+    const sendCandidates = (window.jobs || []).filter(c => {
       const recommend =
         c.recommend === true ||
         c.recommend === "true" ||
