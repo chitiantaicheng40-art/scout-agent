@@ -447,13 +447,17 @@
           </div>
 
           <div class="section">
-            <div class="label">スカウト文</div>
-            <div class="message" id="msg-${item.id}">${escapeHtml(item.scout_message || "")}</div>
-            <div class="actions">
-              <button class="action" onclick="copyMessage('${item.id}')">コピー</button>
-            </div>
-          </div>
-        </div>
+  <div class="label">件名</div>
+  <div class="message">${escapeHtml(item.scout_subject || "")}</div>
+</div>
+
+<div class="section">
+  <div class="label">スカウト文</div>
+  <div class="message" id="msg-${item.id}">${escapeHtml(item.scout_message || "")}</div>
+  <div class="actions">
+    <button class="action" onclick="copyMessage('${item.id}')">コピー</button>
+  </div>
+</div>
       `).join("");
     }
 
