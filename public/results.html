@@ -626,19 +626,25 @@ if (!res.ok) {
 }
     const data = await res.json();
 
-    if (!data.ok) {
-      alert("自動送信失敗: " + (data.error || "unknown error"));
-      return;
-    }
+   if (!data.ok) {
+  alert("自動送信失敗: " + (data.error || "unknown error"));
+  return;
+}
 
-    alert(`自動送信完了: ${sendCandidates.length}件`);
-    await load();
-  } catch (e) {
-    alert("自動送信失敗: " + (e.message || e));
-  }
-});
+const summary = data.summary || {};
+const sentCount = Number(summary.sent_count || 0);
+const failedCount = Number(summary.failed_count || 0);
+const skippedCount = Number(summary.skipped_count || 0);
+
+alert(
+  `自動送信結果
+送信: ${sentCount}件
+失敗: ${failedCount}件
+スキップ: ${skippedCount}件`
+);
+
+await load();
     
-    load();
   </script>
 </body>
 </html>
