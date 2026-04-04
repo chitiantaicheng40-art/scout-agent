@@ -585,33 +585,31 @@ if (data.ok && data.mode === "bulk") {
       sent === 0 ? 0 : Math.round((interviewed / sent) * 100);
 
     dashboard.innerHTML = `
-      <div class="dashboard-card">
-        <div class="dashboard-item">
-          <div class="label">送信数</div>
-          <div class="value">${sent}</div>
-        </div>
+  <div class="dashboard-card">
+    <div class="label">送信数</div>
+    <div class="value">${sent}</div>
+  </div>
 
-        <div class="dashboard-item">
-          <div class="label">返信数</div>
-          <div class="value">${replied}</div>
-        </div>
+  <div class="dashboard-card">
+    <div class="label">返信数</div>
+    <div class="value">${replied}</div>
+  </div>
 
-        <div class="dashboard-item">
-          <div class="label">面談数</div>
-          <div class="value">${interviewed}</div>
-        </div>
+  <div class="dashboard-card">
+    <div class="label">面談数</div>
+    <div class="value">${interviewed}</div>
+  </div>
 
-        <div class="dashboard-item">
-          <div class="label">返信率</div>
-          <div class="value">${replyRate}%</div>
-        </div>
+  <div class="dashboard-card">
+    <div class="label">返信率</div>
+    <div class="value">${replyRate}%</div>
+  </div>
 
-        <div class="dashboard-item">
-          <div class="label">面談率</div>
-          <div class="value">${interviewRate}%</div>
-        </div>
-      </div>
-    `;
+  <div class="dashboard-card">
+    <div class="label">面談率</div>
+    <div class="value">${interviewRate}%</div>
+  </div>
+`;
   }
   </script>
 </body>
