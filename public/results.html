@@ -615,9 +615,11 @@ cards.forEach((item, index) => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        candidates: sendCandidates,
-      }),
+     body: JSON.stringify({
+  candidates: sendCandidates,
+  scoreThreshold: 0,
+  skipDuplicate: false,
+}),
     });
     
 if (!res.ok) {
