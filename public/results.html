@@ -567,44 +567,87 @@ cards.forEach((item, index) => {
       URL.revokeObjectURL(url);
     }
 
-    document.getElementById("autoSendBtn").addEventListener("click", async () => {
+  document.getElementById("autoSendBtn").addEventListener("click", async () => {
   const confirmed = confirm(
     "送付推奨の候補者に対して、自動でスカウトメールを送信します。実行しますか？"
   );
   if (!confirmed) return;
 
   try {
-    const source = window.currentItems || [];
-    console.log("currentItems:", source);
+    const sendCandidates = (window.currentItems || [])
+      .map((item) => {
+        const profile = item.candidate_profile || {};
 
-  const sendCandidates = (window.currentItems || [])
-  .map(item => {
-    const profile = item.candidate_profile || {};
+        const email =
+          item.candidate_email ||
+          item.email ||
+          profile.email ||
+          profile.mail ||
+          profile.email_address ||
+          "";
 
-    const email =
-      item.candidate_email ||
-      item.email ||
-      profile.email ||
-      profile.mail ||
-      profile.email_address ||
-      "";
+        return {
+          id: item.id,
+          candidate_id: item.candidate_id || item.id,
+          name: item.candidate_name || item.name || profile.name || "",
+          candidate_name: item.candidate_name || item.name || profile.name || "",
+          email,
+          candidate_email: email,
+          job_id: item.job_id,
+          score: Number(item.match_score || item.score || 0),
+          recommend:
+            item.send_recommendation === true ||
+            item.send_recommendation === "true" ||
+            item.recommend === true,
+          scout_subject: item.scout_subject || "",
+          scout_message: item.scout_message || "",
+          sent_status: item.sent_status || "未送信",
+        };
+      })
+      .filter((item) => item.recommend && item.email && item.sent_status !== "送信済み");
 
-    return {
-      id: item.candidate_id || item.id,
-      candidate_id: item.candidate_id || item.id,
-      name: item.candidate_name || item.name || profile.name || "",
-      candidate_name: item.candidate_name || item.name || profile.name || "",
-      email,
-      candidate_email: email,
-      job_id: item.job_id,
-      score: Number(item.match_score || item.score || 0),
-      recommend:
-        item.send_recommendation === true ||
-        item.send_recommendation === "true",
-      scout_subject: item.scout_subject || "",
-      scout_body: item.scout_message || item.scout_body || ""
-    };
-  })
+    if (sendCandidates.length === 0) {
+      alert("送信対象の候補者がいません");
+      return;
+    }
+
+    const res = await fetch("/auto-send-scouts", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        candidates: sendCandidates,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!data.ok) {
+      alert("自動送信失敗: " + (data.error || "unknown error"));
+      return;
+    }
+
+    for (const item of sendCandidates) {
+      await fetch("/update-sent-status", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: item.id,
+          sent_status: "送信済み",
+        }),
+      });
+    }
+
+    await load();
+    alert(`自動送信完了: ${sendCandidates.length}件`);
+  } catch (e) {
+    alert("自動送信失敗: " + (e.message || e));
+  }
+});
+    
   .filter(item => item.recommend && item.email && item.email.includes("@"));
 
 console.log(
