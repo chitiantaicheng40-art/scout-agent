@@ -441,29 +441,43 @@ const jobTitleMap = {
             <button class="action sub" onclick="updateStatus('${item.id}')">状態更新</button>
           </div>
 
-${item.sent_at ? `
-  <div style="margin-top:8px;font-size:13px;color:#666;">
-    最終送信: ${new Date(item.sent_at).toLocaleString("ja-JP")}
-  </div>
-` : ""}
+440   <button class="action sub" onclick="updateStatus('${item.id}')">状態更新</button>
+441 </div>
 
-${item.scout_subject ? `
-  <div style="margin-top:12px;">
-    <div style="font-weight:600;margin-bottom:4px;">送信済み件名</div>
-    <div style="padding:10px;border:1px solid #ddd;border-radius:8px;background:#fafafa;">
-      ${escapeHtml(item.scout_subject)}
-    </div>
-  </div>
-` : ""}
+442 ${item.sent_at ? `
+443   <div style="margin-top:8px;font-size:13px;color:#666;">
+444     最終送信: ${new Date(item.sent_at).toLocaleString("ja-JP")}
+445   </div>
+446 ` : ""}
 
-${item.scout_body ? `
-  <div style="margin-top:12px;">
-    <div style="font-weight:600;margin-bottom:4px;">送信済み本文</div>
-    <div style="padding:12px;border:1px solid #ddd;border-radius:8px;background:#fafafa;white-space:pre-wrap;">
-      ${escapeHtml(item.scout_body)}
-    </div>
-  </div>
-` : ""}
+447 ${item.scout_subject ? `
+448   <div style="margin-top:12px;">
+449     <div style="font-weight:600;margin-bottom:4px;">送信済み件名</div>
+450     <div style="padding:10px;border:1px solid #ddd;border-radius:8px;background:#fafafa;">
+451       ${escapeHtml(
+452         (item.scout_subject || "").replace(
+453           item.job_id,
+454           jobTitleMap[item.job_id] || item.job_id
+455         )
+456       )}
+457     </div>
+458   </div>
+459 ` : ""}
+
+460 ${item.scout_body ? `
+461   <div style="margin-top:12px;">
+462     <div style="font-weight:600;margin-bottom:4px;">送信済み本文</div>
+463     <div style="padding:12px;border:1px solid #ddd;border-radius:8px;background:#fafafa;white-space:pre-wrap;">
+464       ${escapeHtml(
+465         (item.scout_body || "").replaceAll(
+466           item.job_id,
+467           jobTitleMap[item.job_id] || item.job_id
+468         )
+469       )}
+470     </div>
+471   </div>
+472 ` : ""}
+
 
           <div class="section">
             <div class="label">送る理由</div>
