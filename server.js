@@ -99,6 +99,43 @@ function buildScoutSubject(candidate = {}, job = {}) {
   return `${name}様のご経験を拝見し、${jobTitle}の件でご連絡しました`;
 }
 
+function buildPersonalizedReason(candidate = {}, job = {}) {
+  const text = JSON.stringify(candidate).toLowerCase();
+
+  const jobTitle =
+    job.title ||
+    job.job_title ||
+    job.job_id ||
+    job.id ||
+    "ポジション";
+
+  if (
+    job.job_id === "job_cs_planning" ||
+    job.id === "job_cs_planning" ||
+    job.job_id === "job_002"
+  ) {
+    if (text.includes("営業") || text.includes("sales")) {
+      return `営業経験を活かしつつ、企画寄りにキャリアを広げたいご志向に、${jobTitle}が非常に近いと感じ、ご連絡いたしました。`;
+    }
+
+    return `顧客との関係構築経験を活かしながら、より上流の企画業務に関われる点で、${jobTitle}が合うと感じ、ご連絡いたしました。`;
+  }
+
+  if (
+    job.job_id === "job_sales_planning" ||
+    job.id === "job_sales_planning" ||
+    job.job_id === "job_001"
+  ) {
+    return `これまでの営業経験や改善提案のご経験を、より仕組みづくりや営業企画に活かせると感じ、${jobTitle}の件でご連絡いたしました。`;
+  }
+
+  if (job.job_id === "job_revops" || job.id === "job_revops") {
+    return `営業だけでなく、KPI設計や業務改善・仕組み化に関心をお持ちであれば、${jobTitle}との親和性が高いと感じ、ご連絡いたしました。`;
+  }
+
+  return `ご経歴を拝見し、${jobTitle}との親和性が高いと感じ、ご連絡いたしました。`;
+}
+
 function buildScoutMessage(candidate = {}, job = {}, evaluation = {}) {
   const name = candidate.name || candidate.candidate_name || "候補者様";
   const jobTitle =
@@ -110,7 +147,9 @@ function buildScoutMessage(candidate = {}, job = {}, evaluation = {}) {
   const experience = normalizeArrayJson(candidate.experience);
   const whySend = normalizeArrayJson(evaluation.why_send);
   const appealPoints = normalizeArrayJson(evaluation.appeal_points);
-
+  
+　const personalizedReason = buildPersonalizedReason(candidate, job);
+  
   const strengthsText = strengths.length
     ? `特に ${strengths.slice(0, 2).join("、")} のご経験に魅力を感じました。`
     : "";
@@ -132,8 +171,7 @@ function buildScoutMessage(candidate = {}, job = {}, evaluation = {}) {
 突然のご連絡失礼いたします。
 ${companyName}の${senderName}と申します。
 
-ご経歴を拝見し、${jobTitle}ポジションにてぜひ一度お話したいと思いご連絡いたしました。
-
+${personalizedReason}
 ${strengthsText}
 ${expText}
 ${whyText}
