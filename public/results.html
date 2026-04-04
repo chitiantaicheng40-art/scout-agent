@@ -356,7 +356,7 @@ const jobTitleMap = {
 
           return `
             <div class="job-block">
-              <strong>${escapeHtml(jobId)}</strong>：
+              <strong>${escapeHtml(jobTitleMap[jobId] || jobId)}</strong>
               候補者 ${stat.total}件 /
               返信率 ${jobReplyRate}% /
               面談化率 ${jobInterviewRate}%
