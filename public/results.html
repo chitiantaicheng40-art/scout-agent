@@ -218,7 +218,13 @@
 
   <script>
     window.currentItems = [];
-    window.currentFilter = "all";
+　　 window.currentFilter = "all";
+
+const jobTitleMap = {
+  job_cs_planning: "CS企画ポジション",
+  job_sales_planning: "営業企画ポジション",
+  job_revops: "RevOpsポジション"
+};
 
     function setFilter(filterName) {
       window.currentFilter = filterName;
