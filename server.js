@@ -337,11 +337,12 @@ async function evaluateAndSaveOne(candidate, job) {
   const saved = await saveScoutResult(result, candidate, job);
 
   return {
-    candidate_id: candidate.id || candidate.candidate_id || null,
-    candidate_name: candidate.name || candidate.candidate_name || null,
-    result,
-    saved_id: saved.id,
-  };
+  candidate_id: candidate.id || candidate.candidate_id || null,
+  candidate_name: candidate.name || candidate.candidate_name || null,
+  sent_status: candidate.sent_status || "未送信",
+  result,
+  saved_id: saved.id,
+　};
 }
 
 app.post("/evaluate-scout", async (req, res) => {
