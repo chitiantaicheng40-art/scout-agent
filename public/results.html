@@ -610,7 +610,7 @@ cards.forEach((item, index) => {
       return;
     }
 
-    const res = await fetch("/auto-send-scouts", {
+    const res = await fetch("/api/auto-send-scouts", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
