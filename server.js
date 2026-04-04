@@ -53,23 +53,22 @@ function getCandidateEmail(candidate = {}) {
 
 function buildScoutSubject(candidate = {}, job = {}) {
   const name = candidate.name || candidate.candidate_name || "候補者様";
-
-  const jobTitleMap = {
-    job_cs_planning: "CS企画ポジション",
-    job_sales_planning: "営業企画ポジション",
-    job_revops: "RevOpsポジション"
-  };
-
-  const rawJobId = job.job_id || job.id || "";
   const jobTitle =
-    jobTitleMap[rawJobId] ||
-    job.title ||
-    job.job_title ||
-    rawJobId ||
-    "ポジション";
+    job.title || job.job_title || job.job_id || job.id || "ポジション";
+  const current = candidate.current_company || candidate.current_role || "";
 
-  const current =
-    candidate.current_company || candidate.current_role || "";
+  const strengths = [
+    ...(candidate.strengths || []),
+    ...(candidate.skills || [])
+  ].join(" ");
+
+  if (strengths.includes("改善") || strengths.includes("企画")) {
+    return `改善提案や企画経験を活かせる${jobTitle}の件でご連絡しました`;
+  }
+
+  if (strengths.includes("営業")) {
+    return `営業経験を活かせる${jobTitle}の件でご連絡しました`;
+  }
 
   if (current) {
     return `${current}でのご経験を拝見し、${jobTitle}の件でご連絡しました`;
