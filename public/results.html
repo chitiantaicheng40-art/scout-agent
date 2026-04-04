@@ -484,6 +484,29 @@ ${item.sent_job_title ? `
         </div>
       ` : ""}
 
+${item.sent_appeal_points ? `
+  <div style="margin-top:12px;">
+    <div style="font-weight:600;margin-bottom:4px;">送信時の訴求ポイント</div>
+    <div style="padding:10px;border:1px solid #ddd;border-radius:8px;background:#fafafa;">
+      <ul style="margin:0;padding-left:20px;">
+        ${JSON.parse(item.sent_appeal_points).map(x => `<li>${escapeHtml(x)}</li>`).join("")}
+      </ul>
+    </div>
+  </div>
+` : ""}
+
+${item.sent_reason ? `
+  <div style="margin-top:12px;">
+    <div style="font-weight:600;margin-bottom:4px;">送信時の送付理由</div>
+    <div style="padding:10px;border:1px solid #ddd;border-radius:8px;background:#fafafa;">
+      <ul style="margin:0;padding-left:20px;">
+        ${JSON.parse(item.sent_reason).map(x => `<li>${escapeHtml(x)}</li>`).join("")}
+      </ul>
+    </div>
+  </div>
+` : ""}
+
+
       <div class="section">
         <div class="label">送る理由</div>
         <ul>
