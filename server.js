@@ -92,19 +92,6 @@ function buildScoutSubject(candidate = {}, job = {}) {
 
   const current = candidate.current_company || candidate.current_role || "";
 
-  const strengths = [
-    ...(candidate.strengths || []),
-    ...(candidate.skills || []),
-  ].join(" ");
-
-  if (strengths.includes("改善") || strengths.includes("企画")) {
-    return `改善提案や企画経験を活かせる${jobTitle}の件でご連絡しました`;
-  }
-
-  if (strengths.includes("営業")) {
-    return `営業経験を活かせる${jobTitle}の件でご連絡しました`;
-  }
-
   if (current) {
     return `${current}でのご経験を拝見し、${jobTitle}の件でご連絡しました`;
   }
