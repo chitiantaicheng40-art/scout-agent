@@ -574,6 +574,9 @@ cards.forEach((item, index) => {
   if (!confirmed) return;
 
   try {
+    const source = window.currentItems || [];
+    console.log("currentItems:", source);
+
     const sendCandidates = (window.currentItems || [])
       .map((item) => {
         const profile = item.candidate_profile || {};
@@ -587,7 +590,7 @@ cards.forEach((item, index) => {
           "";
 
         return {
-          id: item.id,
+          id: item.candidate_id || item.id,
           candidate_id: item.candidate_id || item.id,
           name: item.candidate_name || item.name || profile.name || "",
           candidate_name: item.candidate_name || item.name || profile.name || "",
@@ -601,10 +604,9 @@ cards.forEach((item, index) => {
             item.recommend === true,
           scout_subject: item.scout_subject || "",
           scout_message: item.scout_message || "",
-          sent_status: item.sent_status || "未送信",
         };
       })
-      .filter((item) => item.recommend && item.email && item.sent_status !== "送信済み");
+      .filter((item) => item.recommend && item.email);
 
     if (sendCandidates.length === 0) {
       alert("送信対象の候補者がいません");
@@ -628,21 +630,8 @@ cards.forEach((item, index) => {
       return;
     }
 
-    for (const item of sendCandidates) {
-      await fetch("/update-sent-status", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          id: item.id,
-          sent_status: "送信済み",
-        }),
-      });
-    }
-
-    await load();
     alert(`自動送信完了: ${sendCandidates.length}件`);
+    await load();
   } catch (e) {
     alert("自動送信失敗: " + (e.message || e));
   }
