@@ -619,7 +619,11 @@ cards.forEach((item, index) => {
         candidates: sendCandidates,
       }),
     });
-
+    
+if (!res.ok) {
+  const text = await res.text();
+  throw new Error(text || "自動送信失敗");
+}
     const data = await res.json();
 
     if (!data.ok) {
