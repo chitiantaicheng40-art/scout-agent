@@ -288,19 +288,32 @@ ${senderName}`;
             body,
           });
 
-          await updateSendLog(logRow.id, {
-            send_status: "sent",
-            sent_at: nowIso(),
-          });
+          const sendResult = await sendScoutEmail({
+  to: candidateEmail,
+  subject,
+  body,
+});
 
-          results.push({
-            candidate_id: candidateId,
-            candidate_name: candidateName,
-            candidate_email: candidateEmail,
-            job_id: jobId,
-            status: "sent",
-            resend_id: sendResult?.id || null,
-          });
+await updateSendLog(logRow.id, {
+  send_status: "sent",
+  sent_at: nowIso(),
+});
+
+await supabase
+  .from("scout_candidates")
+  .update({
+    sent_status: "送信済み"
+  })
+  .eq("id", candidateId);
+
+results.push({
+  candidate_id: candidateId,
+  candidate_name: candidateName,
+  candidate_email: candidateEmail,
+  job_id: jobId,
+  status: "sent",
+  resend_id: sendResult.id || null,
+});
         } else {
           results.push({
             candidate_id: candidateId,
