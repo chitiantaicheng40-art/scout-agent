@@ -441,26 +441,26 @@ const jobTitleMap = {
             <button class="action sub" onclick="updateStatus('${item.id}')">状態更新</button>
           </div>
 
-${candidate.sent_at ? `
+${item.sent_at ? `
   <div style="margin-top:8px;font-size:13px;color:#666;">
-    最終送信: ${new Date(candidate.sent_at).toLocaleString("ja-JP")}
+    最終送信: ${new Date(item.sent_at).toLocaleString("ja-JP")}
   </div>
 ` : ""}
 
-${candidate.scout_subject ? `
+${item.scout_subject ? `
   <div style="margin-top:12px;">
     <div style="font-weight:600;margin-bottom:4px;">送信済み件名</div>
     <div style="padding:10px;border:1px solid #ddd;border-radius:8px;background:#fafafa;">
-      ${candidate.scout_subject}
+      ${escapeHtml(item.scout_subject)}
     </div>
   </div>
 ` : ""}
 
-${candidate.scout_body ? `
+${item.scout_body ? `
   <div style="margin-top:12px;">
     <div style="font-weight:600;margin-bottom:4px;">送信済み本文</div>
     <div style="padding:12px;border:1px solid #ddd;border-radius:8px;background:#fafafa;white-space:pre-wrap;">
-      ${candidate.scout_body}
+      ${escapeHtml(item.scout_body)}
     </div>
   </div>
 ` : ""}
