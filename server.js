@@ -78,9 +78,18 @@ function getCandidateEmail(candidate = {}) {
 }
 
 function buildScoutSubject(candidate = {}, job = {}) {
+  function buildScoutSubject(candidate = {}, job = {}) {
   const name = candidate.name || candidate.candidate_name || "候補者様";
+
+  const jobInfo = getJobInfo(job.job_id || job.id);
+
   const jobTitle =
-    job.title || job.job_title || job.job_id || job.id || "ポジション";
+    jobInfo.title ||
+    job.title ||
+    job.job_title ||
+    job.job_id ||
+    job.id ||
+    "ポジション";
   const current = candidate.current_company || candidate.current_role || "";
 
   const strengths = [
