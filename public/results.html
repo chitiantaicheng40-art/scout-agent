@@ -461,6 +461,15 @@ const jobTitleMap = {
         </div>
       ` : ""}
 
+${item.sent_job_title ? `
+  <div style="margin-top:12px;">
+    <div style="font-weight:600;margin-bottom:4px;">送信求人</div>
+    <div style="padding:10px;border:1px solid #ddd;border-radius:8px;background:#fafafa;">
+      ${escapeHtml(item.sent_job_title)}
+    </div>
+  </div>
+` : ""}
+
       ${item.scout_body ? `
         <div style="margin-top:12px;">
           <div style="font-weight:600;margin-bottom:4px;">送信済み本文</div>
