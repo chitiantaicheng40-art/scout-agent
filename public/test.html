@@ -625,6 +625,7 @@ candidate_002,山田花子,"SaaS企業で営業企画|Salesforce運用|KPI設計
 
 const items = data.items || [];
 renderDashboard(items);
+renderCandidateCards(items);
 
 if (data.ok && data.mode === "bulk") {
           result.textContent = JSON.stringify(summarizeBulkResult(data, topN), null, 2);
