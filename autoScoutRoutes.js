@@ -282,13 +282,7 @@ ${senderName}`;
         });
 
         if (!dryRun) {
-          const sendResult = await sendScoutEmail({
-            to: candidateEmail,
-            subject,
-            body,
-          });
-
-          const sendResult = await sendScoutEmail({
+         const sendResult = await sendScoutEmail({
   to: candidateEmail,
   subject,
   body,
