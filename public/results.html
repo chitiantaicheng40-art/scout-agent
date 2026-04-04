@@ -454,7 +454,13 @@ const jobTitleMap = {
 
           <div class="section">
   <div class="label">件名</div>
-  <div class="message">${escapeHtml(item.scout_subject || "")}</div>
+  <div class="message">
+  ${escapeHtml(
+    (item.scout_subject || "").replace(
+      item.job_id,
+      jobTitleMap[item.job_id] || item.job_id
+    )
+  )}
 </div>
 
 <div class="section">
