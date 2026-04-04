@@ -290,22 +290,25 @@ async function saveScoutResult(result, candidate, job) {
   const scoutMessage =
     result.scout_message || buildScoutMessage(candidate, job, result);
 
-  const payload = {
-    candidate_id: candidateId,
-    candidate_name: candidate.name || candidate.candidate_name || null,
-    candidate_email: getCandidateEmail(candidate) || null,
-    candidate_profile: candidate || {},
-    job_id: jobId,
-    match_score: result.match_score ?? null,
-    must_fit: result.must_fit || null,
-    want_fit: result.want_fit || null,
-    send_recommendation: result.send_recommendation ?? false,
-    why_send: result.why_send || [],
-    appeal_points: result.appeal_points || [],
-    scout_subject: scoutSubject,
-    scout_message: scoutMessage,
-    sent_status: existing?.sent_status || "未送信",
-  };
+ const payload = {
+  candidate_id: candidateId,
+  candidate_name: candidate.name || candidate.candidate_name || null,
+  candidate_email: getCandidateEmail(candidate) || null,
+  candidate_profile: candidate || {},
+  job_id: jobId,
+  match_score: result.match_score ?? null,
+  must_fit: result.must_fit || null,
+  want_fit: result.want_fit || null,
+  send_recommendation: result.send_recommendation ?? false,
+  why_send: result.why_send || [],
+  appeal_points: result.appeal_points || [],
+  scout_subject: scoutSubject,
+  scout_message: scoutMessage,
+  sent_job_title: job.title || job.job_title || job.job_id || job.id || null,
+  sent_reason: JSON.stringify(result.why_send || []),
+  sent_appeal_points: JSON.stringify(result.appeal_points || []),
+  sent_status: existing?.sent_status || "未送信",
+};
 
   if (existing?.id) {
     const { data, error } = await supabase
