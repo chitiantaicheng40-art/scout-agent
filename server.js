@@ -5,6 +5,32 @@ const { createClient } = require("@supabase/supabase-js");
 const { registerAutoScoutRoutes } = require("./autoScoutRoutes");
 
 const app = express();
+
+// 求人ID → 表示名
+const JOB_MASTER = {
+  job_001: {
+    title: "改善提案や企画経験を活かせる営業企画 / RevOps",
+    shortTitle: "営業企画 / RevOps",
+  },
+  job_002: {
+    title: "既存顧客との関係構築を活かせるカスタマーサクセス企画",
+    shortTitle: "カスタマーサクセス企画",
+  },
+  job_003: {
+    title: "営業経験を活かして事業企画に挑戦できるポジション",
+    shortTitle: "事業企画",
+  },
+};
+
+function getJobInfo(jobId) {
+  return (
+    JOB_MASTER[jobId] || {
+      title: jobId,
+      shortTitle: jobId,
+    }
+  );
+}
+
 const PORT = process.env.PORT || 10000;
 
 app.use(express.json({ limit: "2mb" }));
