@@ -152,13 +152,102 @@
   margin-bottom: 6px;
 }
 
-.dashboard-card .value {
+..dashboard-card .value {
   font-size: 28px;
   font-weight: bold;
   color: #111;
 }
+
+.candidate-cards {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.candidate-card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.candidate-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.candidate-name {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: bold;
+  border: 1px solid #ccc;
+}
+
+.status-未送信 {
+  background: #f3f4f6;
+  color: #555;
+}
+
+.status-送信済み {
+  background: #e5e7eb;
+  color: #222;
+}
+
+.status-返信あり {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.status-面談設定 {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.score {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.card-section {
+  margin-top: 10px;
+}
+
+.card-label {
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.card-list {
+  margin: 0;
+  padding-left: 20px;
+  line-height: 1.7;
+}
+
+.scout-box {
+  margin-top: 10px;
+  background: #fafafa;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  padding: 12px;
+  white-space: pre-wrap;
+  line-height: 1.7;
+}
+</style>
     
-  </style>
 </head>
 <body>
   <h1>Scout Agent Test</h1>
