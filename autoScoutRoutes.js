@@ -296,7 +296,10 @@ await updateSendLog(logRow.id, {
 await supabase
   .from("scout_candidates")
   .update({
-    sent_status: "送信済み"
+    sent_status: "送信済み",
+    sent_at: new Date().toISOString(),
+    scout_subject: subject,
+    scout_body: body
   })
   .eq("id", candidateId);
 
