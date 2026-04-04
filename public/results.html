@@ -404,115 +404,113 @@ const jobTitleMap = {
     }
 
     function renderList() {
-      const root = document.getElementById("list");
-      const filtered = getFilteredItems();
+  const root = document.getElementById("list");
+  const filtered = getFilteredItems();
 
-      if (!filtered.length) {
-        root.innerHTML = '<div class="empty">該当する候補者がありません</div>';
-        return;
-      }
+  if (!filtered.length) {
+    root.innerHTML = '<div class="empty">該当する候補者がありません</div>';
+    return;
+  }
 
-      root.innerHTML = filtered.map((item, index) => `
-        <div class="card">
-          <div class="top">
-            <div>
-              <div class="name">${index + 1}位：${escapeHtml(item.candidate_name || "名前なし")}</div>
-              <div class="meta">
-                求人: ${escapeHtml(jobTitleMap[item.job_id] || item.job_id || "-")}<br>
-                Must: ${escapeHtml(item.must_fit || "-")} / Want: ${escapeHtml(item.want_fit || "-")}
-              </div>
-            </div>
-            <div class="score ${item.send_recommendation ? "good" : "bad"}">
-              ${item.match_score || 0}点 / ${item.send_recommendation ? "送る" : "見送り"}
-            </div>
+  root.innerHTML = filtered.map((item, index) => `
+    <div class="card">
+      <div class="top">
+        <div>
+          <div class="name">${index + 1}位：${escapeHtml(item.candidate_name || "名前なし")}</div>
+          <div class="meta">
+            求人: ${escapeHtml(jobTitleMap[item.job_id] || item.job_id || "-")}<br>
+            Must: ${escapeHtml(item.must_fit || "-")} / Want: ${escapeHtml(item.want_fit || "-")}
           </div>
+        </div>
+        <div class="score ${item.send_recommendation ? "good" : "bad"}">
+          ${item.match_score || 0}点 / ${item.send_recommendation ? "送る" : "見送り"}
+        </div>
+      </div>
 
-          <div class="status-row">
-            <span class="status-badge">送信状態: ${escapeHtml(item.sent_status || "未送信")}</span>
+      <div class="status-row">
+        <span class="status-badge">送信状態: ${escapeHtml(item.sent_status || "未送信")}</span>
 
-            <select id="status-${item.id}">
-              <option value="未送信" ${item.sent_status === "未送信" ? "selected" : ""}>未送信</option>
-              <option value="送信済み" ${item.sent_status === "送信済み" ? "selected" : ""}>送信済み</option>
-              <option value="返信あり" ${item.sent_status === "返信あり" ? "selected" : ""}>返信あり</option>
-              <option value="面談設定" ${item.sent_status === "面談設定" ? "selected" : ""}>面談設定</option>
-              <option value="見送り" ${item.sent_status === "見送り" ? "selected" : ""}>見送り</option>
-            </select>
+        <select id="status-${item.id}">
+          <option value="未送信" ${item.sent_status === "未送信" ? "selected" : ""}>未送信</option>
+          <option value="送信済み" ${item.sent_status === "送信済み" ? "selected" : ""}>送信済み</option>
+          <option value="返信あり" ${item.sent_status === "返信あり" ? "selected" : ""}>返信あり</option>
+          <option value="面談設定" ${item.sent_status === "面談設定" ? "selected" : ""}>面談設定</option>
+          <option value="見送り" ${item.sent_status === "見送り" ? "selected" : ""}>見送り</option>
+        </select>
 
-            <button class="action sub" onclick="updateStatus('${item.id}')">状態更新</button>
+        <button class="action sub" onclick="updateStatus('${item.id}')">状態更新</button>
+      </div>
+
+      ${item.sent_at ? `
+        <div style="margin-top:8px;font-size:13px;color:#666;">
+          最終送信: ${new Date(item.sent_at).toLocaleString("ja-JP")}
+        </div>
+      ` : ""}
+
+      ${item.scout_subject ? `
+        <div style="margin-top:12px;">
+          <div style="font-weight:600;margin-bottom:4px;">送信済み件名</div>
+          <div style="padding:10px;border:1px solid #ddd;border-radius:8px;background:#fafafa;">
+            ${escapeHtml(
+              (item.scout_subject || "").replace(
+                item.job_id,
+                jobTitleMap[item.job_id] || item.job_id
+              )
+            )}
           </div>
+        </div>
+      ` : ""}
 
-440   <button class="action sub" onclick="updateStatus('${item.id}')">状態更新</button>
-441 </div>
-
-442 ${item.sent_at ? `
-443   <div style="margin-top:8px;font-size:13px;color:#666;">
-444     最終送信: ${new Date(item.sent_at).toLocaleString("ja-JP")}
-445   </div>
-446 ` : ""}
-
-447 ${item.scout_subject ? `
-448   <div style="margin-top:12px;">
-449     <div style="font-weight:600;margin-bottom:4px;">送信済み件名</div>
-450     <div style="padding:10px;border:1px solid #ddd;border-radius:8px;background:#fafafa;">
-451       ${escapeHtml(
-452         (item.scout_subject || "").replace(
-453           item.job_id,
-454           jobTitleMap[item.job_id] || item.job_id
-455         )
-456       )}
-457     </div>
-458   </div>
-459 ` : ""}
-
-460 ${item.scout_body ? `
-461   <div style="margin-top:12px;">
-462     <div style="font-weight:600;margin-bottom:4px;">送信済み本文</div>
-463     <div style="padding:12px;border:1px solid #ddd;border-radius:8px;background:#fafafa;white-space:pre-wrap;">
-464       ${escapeHtml(
-465         (item.scout_body || "").replaceAll(
-466           item.job_id,
-467           jobTitleMap[item.job_id] || item.job_id
-468         )
-469       )}
-470     </div>
-471   </div>
-472 ` : ""}
-
-
-          <div class="section">
-            <div class="label">送る理由</div>
-            <ul>
-              ${(item.why_send || []).map(x => `<li>${escapeHtml(x)}</li>`).join("")}
-            </ul>
+      ${item.scout_body ? `
+        <div style="margin-top:12px;">
+          <div style="font-weight:600;margin-bottom:4px;">送信済み本文</div>
+          <div style="padding:12px;border:1px solid #ddd;border-radius:8px;background:#fafafa;white-space:pre-wrap;">
+            ${escapeHtml(
+              (item.scout_body || "").replaceAll(
+                item.job_id,
+                jobTitleMap[item.job_id] || item.job_id
+              )
+            )}
           </div>
+        </div>
+      ` : ""}
 
-          <div class="section">
-            <div class="label">訴求ポイント</div>
-            <ul>
-              ${(item.appeal_points || []).map(x => `<li>${escapeHtml(x)}</li>`).join("")}
-            </ul>
-          </div>
+      <div class="section">
+        <div class="label">送る理由</div>
+        <ul>
+          ${(item.why_send || []).map(x => `<li>${escapeHtml(x)}</li>`).join("")}
+        </ul>
+      </div>
 
-          <div class="section">
-  <div class="label">件名</div>
-  <div class="message">
-  ${escapeHtml(
-    (item.scout_subject || "").replace(
-      item.job_id,
-      jobTitleMap[item.job_id] || item.job_id
-    )
-  )}
-</div>
+      <div class="section">
+        <div class="label">訴求ポイント</div>
+        <ul>
+          ${(item.appeal_points || []).map(x => `<li>${escapeHtml(x)}</li>`).join("")}
+        </ul>
+      </div>
 
-<div class="section">
-  <div class="label">スカウト文</div>
-  <div class="message" id="msg-${item.id}">${escapeHtml(item.scout_message || "")}</div>
-  <div class="actions">
-    <button class="action" onclick="copyMessage('${item.id}')">コピー</button>
-  </div>
-</div>
-      `).join("");
-    }
+      <div class="section">
+        <div class="label">件名</div>
+        <div class="message">
+          ${escapeHtml(
+            (item.scout_subject || "").replace(
+              item.job_id,
+              jobTitleMap[item.job_id] || item.job_id
+            )
+          )}
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="label">スカウト文</div>
+        <div class="message" id="msg-${item.id}">${escapeHtml(item.scout_message || "")}</div>
+        <div class="actions">
+          <button class="action" onclick="copyMessage('${item.id}')">コピー</button>
+        </div>
+      </div>
+    </div>
+  `).join("");
+}
 
     function escapeHtml(value) {
       return String(value)
