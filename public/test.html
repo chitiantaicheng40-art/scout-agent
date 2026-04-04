@@ -688,6 +688,61 @@ if (data.ok && data.mode === "bulk") {
   </div>
 `;
   }
+
+    function renderCandidateCards(items = []) {
+  const container = document.getElementById("candidateCards");
+  if (!container) return;
+
+  if (!items.length) {
+    container.innerHTML = "";
+    return;
+  }
+
+  container.className = "candidate-cards";
+
+  container.innerHTML = items.map(item => {
+    const name = item.candidate_name || "候補者名なし";
+    const sentStatus = item.sent_status || "未送信";
+    const score = item.result?.match_score ?? "-";
+    const mustFit = item.result?.must_fit ?? "-";
+    const wantFit = item.result?.want_fit ?? "-";
+    const whySend = item.result?.why_send || [];
+    const appealPoints = item.result?.appeal_points || [];
+    const scoutMessage = item.result?.scout_message || "";
+
+    return `
+      <div class="candidate-card">
+        <div class="candidate-header">
+          <div class="candidate-name">${name}</div>
+          <span class="status-badge status-${sentStatus}">${sentStatus}</span>
+        </div>
+
+        <div class="score">
+          マッチ度: ${score}点 / Must: ${mustFit} / Want: ${wantFit}
+        </div>
+
+        <div class="card-section">
+          <div class="card-label">送る理由</div>
+          <ul class="card-list">
+            ${whySend.map(reason => `<li>${reason}</li>`).join("")}
+          </ul>
+        </div>
+
+        <div class="card-section">
+          <div class="card-label">訴求ポイント</div>
+          <ul class="card-list">
+            ${appealPoints.map(point => `<li>${point}</li>`).join("")}
+          </ul>
+        </div>
+
+        <div class="card-section">
+          <div class="card-label">スカウト文</div>
+          <div class="scout-box">${scoutMessage}</div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
   </script>
 </body>
 </html>
