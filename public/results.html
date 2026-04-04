@@ -415,7 +415,7 @@ const jobTitleMap = {
             <div>
               <div class="name">${index + 1}位：${escapeHtml(item.candidate_name || "名前なし")}</div>
               <div class="meta">
-                求人: ${escapeHtml(item.job_id || "-")}<br>
+                求人: ${escapeHtml(jobTitleMap[item.job_id] || item.job_id || "-")}<br>
                 Must: ${escapeHtml(item.must_fit || "-")} / Want: ${escapeHtml(item.want_fit || "-")}
               </div>
             </div>
