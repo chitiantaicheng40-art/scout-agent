@@ -52,7 +52,6 @@ function getCandidateEmail(candidate = {}) {
 }
 
 function buildScoutSubject(candidate = {}, job = {}) {
-function buildScoutSubject(candidate = {}, job = {}) {
   const name = candidate.name || candidate.candidate_name || "候補者様";
 
   const jobTitleMap = {
