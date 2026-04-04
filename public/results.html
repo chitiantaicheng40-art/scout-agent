@@ -634,55 +634,6 @@ cards.forEach((item, index) => {
   }
 });
     
-  .filter(item => item.recommend && item.email && item.email.includes("@"));
-
-console.log(
-  (window.currentItems || []).map(x => ({
-    name: x.candidate_name,
-    candidate_email: x.candidate_email,
-    email: x.email,
-    profile_email: x.candidate_profile?.email,
-    profile_mail: x.candidate_profile?.mail,
-    profile_email_address: x.candidate_profile?.email_address
-  }))
-);
-
-    if (sendCandidates.length === 0) {
-      alert("送信対象候補者がいません。");
-      return;
-    }
-
-    const res = await fetch("/api/auto-send-scouts", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        scoreThreshold: 0,
-        dryRun: false,
-        skipDuplicate: false,
-        candidates: sendCandidates,
-      }),
-    });
-
-    const json = await res.json();
-    console.log("auto send result:", json);
-
-    if (!json.ok) {
-      throw new Error(json.error || "送信失敗");
-    }
-
-    alert(
-      `送信完了\n送信: ${json.summary.sent_count}件\n失敗: ${json.summary.failed_count}件\nスキップ: ${json.summary.skipped_count}件`
-    );
-
-    location.reload();
-  } catch (e) {
-    console.error(e);
-    alert("送信時にエラー: " + e.message);
-  }
-});
-    
     load();
   </script>
 </body>
