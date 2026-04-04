@@ -587,8 +587,8 @@ cards.forEach((item, index) => {
           "";
 
         return {
-          id: item.candidate_id || item.id,
-          candidate_id: item.candidate_id || item.id,
+          id: item.id,
+          candidate_id: item.id,
           name: item.candidate_name || item.name || profile.name || "",
           candidate_name: item.candidate_name || item.name || profile.name || "",
           email,
@@ -603,6 +603,7 @@ cards.forEach((item, index) => {
           scout_message: item.scout_message || "",
         };
       })
+      .filter((item) => item.recommend && item.email);
       .filter((item) => item.recommend && item.email);
 
     if (sendCandidates.length === 0) {
