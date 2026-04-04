@@ -567,16 +567,13 @@ cards.forEach((item, index) => {
       URL.revokeObjectURL(url);
     }
 
-  document.getElementById("autoSendBtn").addEventListener("click", async () => {
+ document.getElementById("autoSendBtn").addEventListener("click", async () => {
   const confirmed = confirm(
     "送付推奨の候補者に対して、自動でスカウトメールを送信します。実行しますか？"
   );
   if (!confirmed) return;
 
   try {
-    const source = window.currentItems || [];
-    console.log("currentItems:", source);
-
     const sendCandidates = (window.currentItems || [])
       .map((item) => {
         const profile = item.candidate_profile || {};
