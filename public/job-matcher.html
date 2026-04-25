@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job Matcher</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 1100px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f7f7f7;
+      color: #111;
+    }
+
+    h1 {
+      margin-bottom: 8px;
+    }
+
+    .sub {
+      color: #666;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+
+    .box {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 240px;
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      line-height: 1.6;
+      box-sizing: border-box;
+    }
+
+    button {
+      background: #111;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 14px 22px;
+      font-size: 15px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .status {
+      margin-top: 14px;
+      color: #555;
+      font-size: 14px;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 14px;
+      padding: 20px;
+      line-height: 1.7;
+      font-size: 14px;
+      min-height: 200px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Job Matcher</h1>
+  <div class="sub">
+    候補者情報を入力すると、コンサル6社の求人DBからマッチするポジションを提案します。<br />
+    面談後の求人提案・推薦理由作成・提案資料作成の前段として使う画面です。
+  </div>
+
+  <div class="box">
+    <label for="candidate">候補者情報</label>
+    <textarea id="candidate">{
+  "name": "Aさん",
+  "age": 29,
+  "education": "早稲田大学 商学部",
+  "current_company": "SaaS企業",
+  "current_role": "営業企画",
+  "experience": [
+    "SaaS企業で営業企画を担当",
+    "CRM改善プロジェクトを推進",
+    "KPI設計とダッシュボード運用",
+    "法人営業部門と連携した業務改善"
+  ],
+  "skills": [
+    "Salesforce",
+    "データ分析",
+    "業務改善",
+    "KPI設計",
+    "関係者調整"
+  ],
+  "preference": [
+    "AI/DX領域",
+    "コンサルティングファーム",
+    "東京勤務",
+    "上流工程に関わりたい"
+  ]
+}</textarea>
+
+    <br /><br />
+    <button onclick="matchJobs()">求人マッチングを実行</button>
+    <div class="status" id="status">待機中</div>
+  </div>
+
+  <h2>マッチング結果</h2>
+  <pre id="result">ここに結果が表示されます</pre>
+
+  <script>
+    async function matchJobs() {
+      const status = document.getElementById("status");
+      const result = document.getElementById("result");
+
+      try {
+        status.textContent = "マッチング中...";
+        result.textContent = "送信中...";
+
+        const candidate = JSON.parse(document.getElementById("candidate").value);
+
+        const response = await fetch("/match-jobs", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(candidate)
+        });
+
+        const data = await response.json();
+
+        if (!data.ok) {
+          result.textContent = "エラー: " + (data.error || "不明なエラー");
+          status.textContent = "エラーが発生しました";
+          return;
+        }
+
+        result.textContent = data.result;
+        status.textContent = "完了：求人マッチングを実行しました";
+      } catch (e) {
+        result.textContent = "エラー: " + e.message;
+        status.textContent = "JSON形式または通信エラーです";
+      }
+    }
+  </script>
+</body>
+</html>
