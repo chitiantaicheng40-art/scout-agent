@@ -502,6 +502,62 @@ app.post("/update-sent-status", async (req, res) => {
   }
 });
 
+app.post("/match-jobs", async (req, res) => {
+  try {
+    const candidate = req.body;
+
+    const jobsPath = path.join(__dirname, "jobs_database.json");
+    const jobs = JSON.parse(fs.readFileSync(jobsPath, "utf-8"));
+
+    const prompt = `
+あなたは人材紹介会社の求人提案アドバイザーです。
+候補者情報をもとに、コンサルティングファーム求人DBからマッチする求人を選んでください。
+
+候補者:
+${JSON.stringify(candidate, null, 2)}
+
+求人DB:
+${JSON.stringify(jobs, null, 2)}
+
+以下の形式で日本語で出力してください。
+
+## 求人マッチング結果
+
+### ◎ 最有力マッチ
+1. ポジション名（会社名）
+- マッチ理由
+- 活かせる経験
+- 懸念点
+
+### ○ 有力マッチ
+2〜3件
+
+### △ 可能性あり
+1〜2件
+
+### 推薦時のポイント
+候補者を推薦する際の打ち出し方をまとめてください。
+`;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.3
+    });
+
+    res.json({
+      ok: true,
+      result: completion.choices[0].message.content
+    });
+  } catch (e) {
+    console.error("match-jobs error:", e);
+    res.status(500).json({
+      ok: false,
+      error: e.message
+    });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
