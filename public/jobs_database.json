@@ -1,0 +1,107 @@
+[
+  {
+    "id": "pwc_ai_001",
+    "company": "PwC",
+    "title": "AI・データ活用コンサルタント",
+    "url": "https://jp-pwc.my.salesforce-sites.com/recruit/consulting/job/index",
+    "location": "東京",
+    "category": "AI/DX",
+    "must": [
+      "業務改善経験",
+      "法人顧客対応経験"
+    ],
+    "want": [
+      "AI",
+      "データ分析",
+      "コンサル経験"
+    ],
+    "level": "consultant"
+  },
+  {
+    "id": "accenture_dx_001",
+    "company": "アクセンチュア",
+    "title": "DXコンサルタント",
+    "url": "https://www.accenture.com/jp-ja/careers/jobsearch",
+    "location": "東京",
+    "category": "DX",
+    "must": [
+      "業務改善経験",
+      "プロジェクト経験"
+    ],
+    "want": [
+      "IT知識",
+      "データ分析",
+      "コンサル経験"
+    ],
+    "level": "consultant"
+  },
+  {
+    "id": "deloitte_strategy_001",
+    "company": "デロイト",
+    "title": "戦略コンサルタント",
+    "url": "https://pgst02.jposting.net/u/job.phtml",
+    "location": "東京",
+    "category": "戦略",
+    "must": [
+      "課題解決能力",
+      "論理的思考"
+    ],
+    "want": [
+      "コンサル経験",
+      "経営企画経験"
+    ],
+    "level": "consultant"
+  },
+  {
+    "id": "kpmg_it_001",
+    "company": "KPMG",
+    "title": "ITコンサルタント",
+    "url": "https://recruit.kpmg-consulting.jp/job-description",
+    "location": "東京",
+    "category": "IT",
+    "must": [
+      "ITプロジェクト経験",
+      "業務改善経験"
+    ],
+    "want": [
+      "SAP",
+      "Salesforce",
+      "コンサル経験"
+    ],
+    "level": "consultant"
+  },
+  {
+    "id": "abeam_dx_001",
+    "company": "アビーム",
+    "title": "DXコンサルタント",
+    "url": "https://www.abeam.com/jp/ja/recruit/career/jobs/",
+    "location": "東京",
+    "category": "DX",
+    "must": [
+      "業務改善経験",
+      "プロジェクト経験"
+    ],
+    "want": [
+      "データ分析",
+      "IT知識"
+    ],
+    "level": "consultant"
+  },
+  {
+    "id": "fortience_consulting_001",
+    "company": "フォーティエンス",
+    "title": "コンサルタント",
+    "url": "https://js01.jposting.net/fortience/u/job.phtml",
+    "location": "東京",
+    "category": "コンサル",
+    "must": [
+      "課題解決力",
+      "コミュニケーション力"
+    ],
+    "want": [
+      "コンサル経験",
+      "業務改善経験"
+    ],
+    "level": "consultant"
+  }
+]
