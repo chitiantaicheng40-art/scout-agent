@@ -1,6 +1,9 @@
 require("dotenv").config();
 const express = require("express");
 const OpenAI = require("openai");
+
+const fs = require("fs");
+const path = require("path");
 const { createClient } = require("@supabase/supabase-js");
 const { registerAutoScoutRoutes } = require("./autoScoutRoutes");
 
