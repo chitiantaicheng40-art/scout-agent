@@ -43,6 +43,9 @@ app.use(express.static("public"));
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+const anthropic = new Anthropic({
+  apiKey: process.env.CLAUDE_API_KEY,
+});
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -540,16 +543,22 @@ ${JSON.stringify(jobs, null, 2)}
 候補者を推薦する際の打ち出し方をまとめてください。
 `;
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.3
-    });
+const msg = await anthropic.messages.create({
+  model: "claude-3-haiku-20240307",
+  max_tokens: 2500,
+  temperature: 0.3,
+  messages: [
+    {
+      role: "user",
+      content: prompt
+    }
+  ]
+});
 
-    res.json({
-      ok: true,
-      result: completion.choices[0].message.content
-    });
+res.json({
+  ok: true,
+  result: msg.content[0].text
+});
   } catch (e) {
     console.error("match-jobs error:", e);
     res.status(500).json({
