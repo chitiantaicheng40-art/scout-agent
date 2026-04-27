@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const OpenAI = require("openai");
+const Anthropic = require("@anthropic-ai/sdk");
 
 const fs = require("fs");
 const path = require("path");
