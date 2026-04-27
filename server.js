@@ -544,7 +544,7 @@ ${JSON.stringify(jobs, null, 2)}
 `;
 
 const msg = await anthropic.messages.create({
-  model: "claude-3-sonnet-20240229",
+  model: "claude-sonnet-4-5",
   max_tokens: 2500,
   temperature: 0.3,
   messages: [
