@@ -647,11 +647,32 @@ console.log("SMS条件:", {
   toPhone,
   hasClient: !!twilioClient,
 });
+    let smsSendResult = null;
+
+if (parsed.should_send_schedule && twilioClient && toPhone) {
+  const sent = await twilioClient.messages.create({
+    body: parsed.sms_message,
+    from: process.env.TWILIO_FROM_PHONE,
+    to: toPhone,
+  });
+
+  smsSendResult = {
+    sent: true,
+    sid: sent.sid,
+    to: toPhone,
+  };
+}
     
-    res.json({
-      ok: true,
-      result: parsed,
-    });
+   res.json({
+  ok: true,
+  result: parsed,
+  sms: smsSendResult || {
+    sent: false,
+    reason: parsed.should_send_schedule
+      ? "電話番号またはTwilio設定がありません"
+      : "日程送付対象ではありません",
+  },
+});
   } catch (e) {
     console.error("handle-reply error:", e);
     res.status(500).json({
