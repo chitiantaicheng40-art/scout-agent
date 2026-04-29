@@ -568,6 +568,89 @@ res.json({
   }
 });
 
+app.post("/handle-reply", async (req, res) => {
+  try {
+    const { candidate_name, reply_text } = req.body;
+
+    const meetingLink =
+      process.env.SCOUT_MEETING_LINK || "https://example.com/calendar";
+
+    const prompt = `
+あなたは人材紹介会社のキャリア面談担当です。
+候補者からの返信内容を読み取り、面談化につながる自然な返信文を作成してください。
+
+【候補者名】
+${candidate_name || "候補者様"}
+
+【候補者からの返信】
+${reply_text}
+
+【分類】
+以下のどれかに分類してください。
+- 興味あり
+- 検討中
+- 日程希望
+- 断り
+- その他
+
+【出力形式】
+以下のJSONだけで返してください。
+
+{
+  "intent": "興味あり",
+  "should_send_schedule": true,
+  "sms_message": "候補者に送るSMS文面",
+  "follow_up_message": "未対応時に送るフォロー文面"
+}
+
+【ルール】
+- 興味あり、検討中、日程希望の場合は should_send_schedule を true
+- 断りの場合は should_send_schedule を false
+- SMS文面には必ず以下の日程調整リンクを自然に入れる
+${meetingLink}
+- SMSは短く、丁寧で、営業感を出しすぎない
+- 日本語で返す
+`;
+
+    const msg = await anthropic.messages.create({
+      model: "claude-3-haiku-20240307",
+      max_tokens: 1200,
+      temperature: 0.2,
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    });
+
+    const text = msg.content[0].text;
+
+    let parsed;
+    try {
+      parsed = JSON.parse(text);
+    } catch (e) {
+      parsed = {
+        intent: "その他",
+        should_send_schedule: false,
+        sms_message: text,
+        follow_up_message: "",
+      };
+    }
+
+    res.json({
+      ok: true,
+      result: parsed,
+    });
+  } catch (e) {
+    console.error("handle-reply error:", e);
+    res.status(500).json({
+      ok: false,
+      error: e.message,
+    });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
