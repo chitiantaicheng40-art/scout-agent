@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reply Handler</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f7f7f7;
+      color: #111;
+    }
+
+    h1 {
+      margin-bottom: 8px;
+    }
+
+    .sub {
+      color: #666;
+      margin-bottom: 24px;
+      line-height: 1.7;
+    }
+
+    .box {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      box-sizing: border-box;
+      margin-bottom: 16px;
+    }
+
+    textarea {
+      min-height: 180px;
+      line-height: 1.6;
+    }
+
+    button {
+      background: #111;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 14px 22px;
+      font-size: 15px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .status {
+      margin-top: 14px;
+      color: #555;
+      font-size: 14px;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 14px;
+      padding: 20px;
+      line-height: 1.7;
+      font-size: 14px;
+      min-height: 180px;
+    }
+
+    .result-card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 14px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+
+    .label {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 6px;
+    }
+
+    .value {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Reply Handler</h1>
+  <div class="sub">
+    候補者からの返信を入力すると、AIが温度感を分類し、日程調整リンク付きの初期対応文を作成します。<br />
+    Step1：返信後の即対応・面談化スピード改善の検証用です。
+  </div>
+
+  <div class="box">
+    <label for="candidate_name">候補者名</label>
+    <input id="candidate_name" value="Aさん" />
+
+    <label for="reply_text">候補者からの返信</label>
+    <textarea id="reply_text">ご連絡ありがとうございます。少し興味があります。まずは詳しく話を聞いてみたいです。</textarea>
+
+    <button onclick="handleReply()">返信をAI対応する</button>
+    <div class="status" id="status">待機中</div>
+  </div>
+
+  <h2>AI対応結果</h2>
+  <div class="result-card">
+    <div class="label">分類</div>
+    <div class="value" id="intent">-</div>
+
+    <div class="label">日程リンク送付</div>
+    <div class="value" id="should_send_schedule">-</div>
+
+    <div class="label">SMS送信用メッセージ</div>
+    <pre id="sms_message">ここにSMS文面が表示されます</pre>
+
+    <div class="label">未対応者向けフォローメッセージ</div>
+    <pre id="follow_up_message">ここにフォロー文面が表示されます</pre>
+  </div>
+
+  <script>
+    async function handleReply() {
+      const status = document.getElementById("status");
+
+      try {
+        status.textContent = "AIが返信内容を判定中...";
+
+        const candidate_name = document.getElementById("candidate_name").value;
+        const reply_text = document.getElementById("reply_text").value;
+
+        const response = await fetch("/handle-reply", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            candidate_name,
+            reply_text
+          })
+        });
+
+        const data = await response.json();
+
+        if (!data.ok) {
+          status.textContent = "エラーが発生しました";
+          document.getElementById("sms_message").textContent =
+            "エラー: " + (data.error || "不明なエラー");
+          return;
+        }
+
+        const r = data.result;
+
+        document.getElementById("intent").textContent = r.intent || "-";
+        document.getElementById("should_send_schedule").textContent =
+          r.should_send_schedule ? "送付する" : "送付しない";
+        document.getElementById("sms_message").textContent =
+          r.sms_message || "";
+        document.getElementById("follow_up_message").textContent =
+          r.follow_up_message || "";
+
+        status.textContent = "完了：初期対応文を生成しました";
+      } catch (e) {
+        status.textContent = "通信エラーです";
+        document.getElementById("sms_message").textContent =
+          "エラー: " + e.message;
+      }
+    }
+  </script>
+</body>
+</html>
