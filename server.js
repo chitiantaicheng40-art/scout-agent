@@ -613,7 +613,7 @@ ${meetingLink}
 `;
 
     const msg = await anthropic.messages.create({
-      model: "gpt-5.3",
+      model: "gpt-4o-mini",
       max_tokens: 1200,
       temperature: 0.2,
       messages: [
