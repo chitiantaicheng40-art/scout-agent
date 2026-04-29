@@ -1,7 +1,13 @@
 require("dotenv").config();
 const express = require("express");
 const OpenAI = require("openai");
+const twilio = require("twilio");
 const Anthropic = require("@anthropic-ai/sdk");
+
+const twilioClient = twilio(
+  process.env.TWILIO_ACCOUNT_SID,
+  process.env.TWILIO_AUTH_TOKEN
+);
 
 const fs = require("fs");
 const path = require("path");
