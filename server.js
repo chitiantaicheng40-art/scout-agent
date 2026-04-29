@@ -613,7 +613,7 @@ ${meetingLink}
 `;
 
     const msg = await anthropic.messages.create({
-      model: "gpt-4o-mini",
+      model: "claude-3-5-haiku-20241022",
       max_tokens: 1200,
       temperature: 0.2,
       messages: [
