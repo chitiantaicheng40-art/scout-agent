@@ -640,6 +640,14 @@ const text = response.choices[0].message.content;
       };
     }
 
+    const toPhone = process.env.TEST_SMS_TO || "";
+
+console.log("SMS条件:", {
+  shouldSend: parsed.should_send_schedule,
+  toPhone,
+  hasClient: !!twilioClient,
+});
+    
     res.json({
       ok: true,
       result: parsed,
