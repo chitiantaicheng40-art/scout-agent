@@ -612,19 +612,21 @@ ${meetingLink}
 - 日本語で返す
 `;
 
-    const msg = await anthropic.messages.create({
-      model: "claude-3-5-haiku-20241022",
-      max_tokens: 1200,
-      temperature: 0.2,
-      messages: [
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-    });
+    const response = await openai.chat.completions.create({
+  model: "gpt-4o-mini",
+  messages: [
+    {
+      role: "system",
+      content: "あなたは人材紹介会社のキャリア面談担当です。",
+    },
+    {
+      role: "user",
+      content: prompt,
+    },
+  ],
+});
 
-    const text = msg.content[0].text;
+const text = response.choices[0].message.content;
 
     let parsed;
     try {
