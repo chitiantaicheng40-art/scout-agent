@@ -668,7 +668,11 @@ if (parsed.should_send_schedule && twilioClient && toPhone) {
     to: toPhone,
   };
 }
-    
+    scheduleFollowUpSms({
+  intent: parsed.intent,
+  toPhone,
+  meetingLink,
+});
    res.json({
   ok: true,
   result: parsed,
