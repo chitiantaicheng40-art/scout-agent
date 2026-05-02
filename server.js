@@ -678,6 +678,11 @@ if (parsed.should_send_schedule && twilioClient && toPhone) {
       ? "電話番号またはTwilio設定がありません"
       : "日程送付対象ではありません",
   },
+  follow_up: {
+    scheduled: parsed.intent !== "断り",
+    first_after_hours: Number(process.env.FOLLOW_UP_1_HOURS || 12),
+    second_after_hours: Number(process.env.FOLLOW_UP_2_HOURS || 24),
+  },
 });
   } catch (e) {
     console.error("handle-reply error:", e);
