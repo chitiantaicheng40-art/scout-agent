@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Reply Handler</title>
+
   <style>
     body {
       font-family: sans-serif;
@@ -30,7 +31,6 @@
       border-radius: 14px;
       padding: 20px;
       margin-bottom: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
 
     label {
@@ -44,14 +44,11 @@
       padding: 14px;
       border-radius: 10px;
       border: 1px solid #ccc;
-      font-size: 14px;
-      box-sizing: border-box;
       margin-bottom: 16px;
     }
 
     textarea {
-      min-height: 180px;
-      line-height: 1.6;
+      min-height: 160px;
     }
 
     button {
@@ -60,29 +57,23 @@
       border: none;
       border-radius: 10px;
       padding: 14px 22px;
-      font-size: 15px;
       cursor: pointer;
-      font-weight: bold;
     }
 
     .status {
-      margin-top: 14px;
-      color: #555;
-      font-size: 14px;
+      margin-top: 10px;
+      color: #666;
     }
 
     pre {
       white-space: pre-wrap;
       background: #fff;
       border: 1px solid #ddd;
-      border-radius: 14px;
-      padding: 20px;
-      line-height: 1.7;
-      font-size: 14px;
-      min-height: 180px;
+      border-radius: 10px;
+      padding: 16px;
     }
 
-    .result-card {
+    .card {
       background: #fff;
       border: 1px solid #ddd;
       border-radius: 14px;
@@ -93,94 +84,98 @@
     .label {
       font-size: 13px;
       color: #666;
-      margin-bottom: 6px;
     }
 
     .value {
       font-size: 20px;
       font-weight: bold;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
     }
   </style>
 </head>
+
 <body>
   <h1>Reply Handler</h1>
+
   <div class="sub">
-    候補者からの返信を入力すると、AIが温度感を分類し、日程調整リンク付きの初期対応文を作成します。<br />
-    Step1：返信後の即対応・面談化スピード改善の検証用です。
+    候補者返信 → AI判定 → SMS送信 → フォロー自動送信まで確認できます
   </div>
 
   <div class="box">
-    <label for="candidate_name">候補者名</label>
+    <label>候補者名</label>
     <input id="candidate_name" value="Aさん" />
 
-    <label for="reply_text">候補者からの返信</label>
-    <textarea id="reply_text">ご連絡ありがとうございます。少し興味があります。まずは詳しく話を聞いてみたいです。</textarea>
+    <label>返信内容</label>
+    <textarea id="reply_text">ご連絡ありがとうございます。少し興味があります。</textarea>
 
-    <button onclick="handleReply()">返信をAI対応する</button>
+    <button onclick="handleReply()">AI対応する</button>
     <div class="status" id="status">待機中</div>
   </div>
 
-  <h2>AI対応結果</h2>
-  <div class="result-card">
+  <div class="card">
     <div class="label">分類</div>
     <div class="value" id="intent">-</div>
 
     <div class="label">日程リンク送付</div>
-    <div class="value" id="should_send_schedule">-</div>
+    <div class="value" id="should_send">-</div>
 
-    <div class="label">SMS送信用メッセージ</div>
-    <pre id="sms_message">ここにSMS文面が表示されます</pre>
+    <div class="label">SMS文面</div>
+    <pre id="sms"></pre>
 
-    <div class="label">未対応者向けフォローメッセージ</div>
-    <pre id="follow_up_message">ここにフォロー文面が表示されます</pre>
+    <div class="label">フォロー文面</div>
+    <pre id="follow"></pre>
+
+    <div class="label">SMS送信結果</div>
+    <pre id="sms_result"></pre>
+
+    <div class="label">フォロー送信予定</div>
+    <pre id="follow_schedule"></pre>
   </div>
 
   <script>
     async function handleReply() {
       const status = document.getElementById("status");
 
+      status.textContent = "処理中...";
+
+      const candidate_name = document.getElementById("candidate_name").value;
+      const reply_text = document.getElementById("reply_text").value;
+
       try {
-        status.textContent = "AIが返信内容を判定中...";
-
-        const candidate_name = document.getElementById("candidate_name").value;
-        const reply_text = document.getElementById("reply_text").value;
-
-        const response = await fetch("/handle-reply", {
+        const res = await fetch("/handle-reply", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             candidate_name,
             reply_text
           })
         });
 
-        const data = await response.json();
+        const data = await res.json();
 
         if (!data.ok) {
-          status.textContent = "エラーが発生しました";
-          document.getElementById("sms_message").textContent =
-            "エラー: " + (data.error || "不明なエラー");
+          status.textContent = "エラー";
           return;
         }
 
         const r = data.result;
 
-        document.getElementById("intent").textContent = r.intent || "-";
-        document.getElementById("should_send_schedule").textContent =
-          r.should_send_schedule ? "送付する" : "送付しない";
-        document.getElementById("sms_message").textContent =
-          r.sms_message || "";
-        document.getElementById("follow_up_message").textContent =
-          r.follow_up_message || "";
+        document.getElementById("intent").textContent = r.intent;
+        document.getElementById("should_send").textContent =
+          r.should_send_schedule ? "送る" : "送らない";
 
-        status.textContent = "完了：初期対応文を生成しました";
+        document.getElementById("sms").textContent = r.sms_message;
+        document.getElementById("follow").textContent = r.follow_up_message;
+
+        document.getElementById("sms_result").textContent =
+          JSON.stringify(data.sms, null, 2);
+
+        document.getElementById("follow_schedule").textContent =
+          JSON.stringify(data.follow_up, null, 2);
+
+        status.textContent = "完了";
       } catch (e) {
-        status.textContent = "通信エラーです";
-        document.getElementById("sms_message").textContent =
-          "エラー: " + e.message;
+        status.textContent = "通信エラー";
       }
     }
   </script>
