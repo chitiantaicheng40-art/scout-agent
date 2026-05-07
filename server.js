@@ -574,6 +574,27 @@ res.json({
   }
 });
 
+function scheduleFollowUpSms({ intent, toPhone, meetingLink }) {
+  if (!twilioClient || !toPhone) return;
+
+  if (intent === "断り") return;
+
+  setTimeout(async () => {
+    await twilioClient.messages.create({
+      body: `その後いかがでしょうか？\n${meetingLink}`,
+      from: process.env.TWILIO_FROM_PHONE,
+      to: toPhone,
+    });
+  }, 12 * 60 * 60 * 1000);
+
+  setTimeout(async () => {
+    await twilioClient.messages.create({
+      body: `再度のご連絡です。\n${meetingLink}`,
+      from: process.env.TWILIO_FROM_PHONE,
+      to: toPhone,
+    });
+  }, 24 * 60 * 60 * 1000);
+}
 app.post("/handle-reply", async (req, res) => {
   try {
     const { candidate_name, reply_text } = req.body;
